@@ -1,0 +1,5 @@
+{"model": "JointSoftComp", "seconds_with_audit_hooks": 13.648023875430226, "epochs": 1000, "parameter_count": 2404, "parameter_change_l2": 7.355718708703908, "device": "cpu", "first_loss": 2.058182197809219, "last_loss": 1.1211856722831726, "max_parameter_difference_vs_previous": 0.0, "max_loss_difference_vs_previous": 0.0, "counters": {"optimizer_steps": 20000, "backward_calls": 20000, "train_batches": 20000, "subject_visits": 5000000, "network_forward_calls": 20000, "network_rows": 20000000}}
+{"model": "SoftComp_raw", "seconds_with_audit_hooks": 19.903620459139347, "epochs": 1000, "parameter_count": 2371, "parameter_change_l2": 6.914263147470762, "device": "cpu", "first_loss": 1.6818111300468446, "last_loss": 0.521553461253643, "max_parameter_difference_vs_previous": 0.0, "max_loss_difference_vs_previous": 0.0, "counters": {"optimizer_steps": 20000, "backward_calls": 20000, "train_batches": 20000, "subject_visits": 5000000, "network_forward_calls": 60000, "network_rows": 15000000}}
+real 34.65
+user 32.73
+sys 2.16
