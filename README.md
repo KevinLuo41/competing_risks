@@ -10,26 +10,91 @@ Lower MSE/Brier/IBS and higher C_td/AUC/IPA are better. Similar displayed values
 
 ## 1. Local Setup
 
-Install Git and Miniconda (or Anaconda), then run the following commands in your terminal.
-These instructions apply to macOS / Linux. Run all experiment commands from the project root.
+These instructions apply to macOS 14 or later on Apple Silicon, or Linux x86_64
+with glibc 2.28 or later (for example, Ubuntu 22.04 or later). The pinned PyTorch
+version has no Intel Mac wheel, so this dependency set cannot be installed
+natively on an Intel Mac; use a compatible Linux machine instead.
+See the [PyTorch release files](https://pypi.org/project/torch/2.14.1/#files) for platform tags.
+Run all experiment commands from the project root in a Bash or Zsh terminal.
+You need Git and Conda. Miniconda is enough; Anaconda also works if you already
+use it. No coding assistant or GPU is required for these experiments.
 
-### 1.1 Clone the Repository
+### 1.1 Install Git and Conda
+
+First check whether the required tools are already available:
+
+```bash
+git --version
+conda --version
+```
+
+If `git` is missing, install it with your system package manager. On macOS, you
+can run `xcode-select --install`; on Ubuntu / Debian Linux, run
+`sudo apt-get update && sudo apt-get install -y git`.
+
+If `conda` is missing, install Miniconda. Run **only one** of the following
+commands, matching your machine.
+
+**macOS Apple Silicon** (use a native ARM64 terminal and Conda installation):
+
+```bash
+curl -fL -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+```
+
+**Linux x86_64**:
+
+```bash
+curl -fL -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+```
+
+Then install and initialize Conda:
+
+```bash
+bash miniconda.sh -b -p "$HOME/miniconda3"
+source "$HOME/miniconda3/etc/profile.d/conda.sh"
+conda init "$(basename "$SHELL")"
+```
+
+Close and reopen your terminal, then confirm that Conda is available:
+
+```bash
+conda --version
+```
+
+If you installed Miniconda somewhere other than `$HOME/miniconda3`, replace that
+path in the `source` command above.
+
+Newer Conda releases may ask you to accept the default Anaconda channel terms
+before creating an environment. If `conda create` reports a
+`CondaToSNonInteractiveError`, run the commands printed in the error message.
+They usually look like this:
+
+```bash
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+```
+
+### 1.2 Clone the Repository
 
 ```bash
 git clone https://github.com/KevinLuo41/competing_risks.git
 cd competing_risks
 ```
 
-### 1.2 Create and Activate a Conda Environment
+### 1.3 Create and Activate a Conda Environment
 
 ```bash
 conda create -n competing-risks python=3.12 pip -y
 conda activate competing-risks
 ```
 
+On Apple Silicon, `python -c "import platform; print(platform.machine())"`
+should print `arm64`. If it prints `x86_64`, use a native ARM64 Conda installation
+and recreate the environment before installing dependencies.
+
 If `conda activate` reports that your shell has not been initialized, run `conda init`, reopen your terminal, return to `competing_risks/`, and run `conda activate competing-risks` again.
 
-### 1.3 Install Dependencies and Set the Import Path
+### 1.4 Install Dependencies and Set the Import Path
 
 ```bash
 python -m pip install -r requirements.txt
@@ -40,7 +105,7 @@ The project uses relative imports under the `competing_risks` package name, so i
 The Full Experiments Bash scripts set the import path automatically.
 Direct dependency versions are pinned in `requirements.txt`; the complete validated environment is recorded in the [dependency lock](local_validation/readme_full/requirements.lock.txt).
 
-### 1.4 Verify the Installation
+### 1.5 Verify the Installation
 
 ```bash
 python -m unittest competing_risks.tests.test_joint_softcomp
