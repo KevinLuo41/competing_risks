@@ -439,7 +439,7 @@ lowest at both nonzero β values. JointSoftComp is close to Cox and improves on
 SoftComp when β is nonzero; at β=0, SoftComp with M=4 has a lower Brier than
 JointSoftComp. This run does not establish one method as best in every setting.
 AUC, IPA, MSE, and the numerical SoftComp limits are in the
-[detailed experiment-I results](../../README.md#35-实验结果).
+[detailed experiment-I results](../../README.md#35-results).
 
 ### Experiment II: censored vs. uncensored Case II/III
 
@@ -535,7 +535,7 @@ values are the maximum absolute error on `[0,20]` (one check per cell; no SD):
 
 Nonparametric AJ has the smallest error in all four checks; JointSoftComp has
 less error than SoftComp. The numerical population-target table is available in
-[the detailed guide](../../README.md#55-实验结果).
+[the detailed guide](../../README.md#55-results).
 
 ### Earlier Case II diagnostic
 

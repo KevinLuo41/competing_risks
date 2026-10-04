@@ -1,124 +1,118 @@
-# JointSoftComp: 模型、loss 与补充实验
+# JointSoftComp: Model, Loss, and Supplementary Experiments
 
-本文档说明 JointSoftComp 的模型和 loss、实现它的代码，以及三个补充实验（用到的代码、运行方式、结果和分析）。文中路径都相对于本地项目根目录 `competing_risks/`。结果表已替换为 2026-10-03 本地 CPU 完整运行的数据：实验一每组 200 次、实验二每组 10 次、实验三每组 5 次。
+This document describes JointSoftComp's model and loss, its implementation, and three supplementary experiments, including their code, commands, results, and analysis. All paths are relative to the project root, `competing_risks/`. The result tables report complete local CPU runs from 2026-10-03: 200 repetitions per setting in Experiment I, 10 in Experiment II, and 5 in Experiment III.
 
-本次共有 878 个成功任务，原始 JSON、运行命令和审计位于
-[`local_validation/readme_full/`](local_validation/readme_full/)。
-下表均值来自原始结果，括号内为样本标准差。**粗体表示同一设定、同一指标中
-未四舍五入均值的最佳值**；MSE/Brier/IBS 越小越好，C_td/AUC/IPA 越大越好。
-显示值接近不表示并列或差异显著。真实模型及总体极小值是参照，不参与拟合模型排名；
-有符号偏差只作为诊断，不排名。
+The run completed 878 tasks. Raw JSON outputs, commands, and audit records are available in
+[`local_validation/readme_full/`](local_validation/readme_full/).
+Table entries are means from the raw results, with sample standard deviations in parentheses.
+**Bold marks the best unrounded mean among fitted methods for the same setting and metric.**
+Lower MSE/Brier/IBS and higher C_td/AUC/IPA are better. Similar displayed values do not imply ties or statistically significant differences. The true model and population minimizers are references and are excluded from fitted-model rankings. Signed bias is a diagnostic and is not ranked.
 
-## 1. 本地运行环境
+## 1. Local Setup
 
-先安装 Git 和 Miniconda（或 Anaconda），然后在终端依次执行以下命令。
-以下步骤适用于 macOS / Linux；所有实验命令都从项目根目录运行。
+Install Git and Miniconda (or Anaconda), then run the following commands in your terminal.
+These instructions apply to macOS / Linux. Run all experiment commands from the project root.
 
-### 1.1 下载项目
+### 1.1 Clone the Repository
 
 ```bash
 git clone https://github.com/KevinLuo41/competing_risks.git
 cd competing_risks
 ```
 
-### 1.2 创建并激活 Conda 环境
+### 1.2 Create and Activate a Conda Environment
 
 ```bash
 conda create -n competing-risks python=3.12 pip -y
 conda activate competing-risks
 ```
 
-如果 `conda activate` 提示 shell 尚未初始化，运行 `conda init`，重新打开终端，
-再进入 `competing_risks/` 并运行 `conda activate competing-risks`。
+If `conda activate` reports that your shell has not been initialized, run `conda init`, reopen your terminal, return to `competing_risks/`, and run `conda activate competing-risks` again.
 
-### 1.3 安装依赖并设置导入路径
+### 1.3 Install Dependencies and Set the Import Path
 
 ```bash
 python -m pip install -r requirements.txt
 export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
-项目通过 `competing_risks` 包名使用相对导入，因此需要把项目的父目录加入
-`PYTHONPATH`。后续 Quick Start 使用同一个终端；重新打开终端后，先激活
-Conda 环境、进入项目根目录，再执行上面的 `export`。
-Full Experiments 的 Bash 脚本会自动设置导入路径。
-依赖安装版本固定在 `requirements.txt`；完整运行环境见[依赖锁](local_validation/readme_full/requirements.lock.txt)。
+The project uses relative imports under the `competing_risks` package name, so its parent directory must be on `PYTHONPATH`. Use the same terminal for the Quick Start commands below. After opening a new terminal, activate the Conda environment, enter the project root, and run the `export` command again.
+The Full Experiments Bash scripts set the import path automatically.
+Direct dependency versions are pinned in `requirements.txt`; the complete validated environment is recorded in the [dependency lock](local_validation/readme_full/requirements.lock.txt).
 
-### 1.4 验证安装
+### 1.4 Verify the Installation
 
 ```bash
 python -m unittest competing_risks.tests.test_joint_softcomp
 ```
 
-看到 `Ran 5 tests` 和 `OK` 即表示安装验证通过。测试会检查观测标签、
-Aalen–Johansen 的 CIF 还原、预测单调性与概率和为 1，以及短训练的有限 loss。
-无需下载额外数据。
+An output of `Ran 5 tests` followed by `OK` confirms that installation validation passed. The tests check observed-state labels, CIF recovery through Aalen–Johansen, monotone predictions whose probabilities sum to 1, and finite losses during short training runs. No additional datasets are required.
 
-## 2. 模型和 loss
+## 2. Model and Loss
 
-- **思路**: 按 Munch & Gerds (2026) 的 joint survival super learner，把删失当作一个独立状态。这样每个样本在任何时刻 t 的观测状态 η(t) ∈ {在险, 原因 1..K, 删失} 都已知。
-- **模型**: 沿用 SoftComp 的残差前馈网络（输入 [x; t]），输出 K + 1 个 logit，补上固定为 0 的在险 logit 后做 (K + 2) 类 softmax，得到观测状态概率。
-- **Loss**: 每个 minibatch 里，对每个样本从训练集事件时间的经验分布中抽 M = 4 个时刻，最小化这些时刻上观测状态的交叉熵。所有标签都可观测，loss 严格 proper，不需要估计删失分布；没有 time augmentation、辅助 Brier 项和后处理。
-- **预测**: 用 Aalen–Johansen 递推 ΔΛ_k = [ΔP_k]₊ / P_0(t-) 由观测状态概率还原 CIF；得到的 CIF 单调，且 S + Σ_k F_k = 1。
-- **默认配置**: 宽 32，1 个残差块，每人 4 个时刻，学习率 1e-3、weight decay 1e-3、batch 256、1000 epochs；六个数据集共用。
-- **对照：论文版 SoftComp**: (K + 1) 类 softmax 直接输出 (S, F_1, …, F_K)。Loss 为式 (5)（观测时刻上的交叉熵）加 time augmentation（每人从 Unif(0, Y_i) 抽 M 个时刻标为存活，权重 0.5；论文默认 M = 2），预测后做 PAV 和 simplex 后处理。它的总体目标依赖删失分布和 M，不是 CIF。
+- **Idea**: Following the joint survival super learner of Munch & Gerds (2026), treat censoring as a separate state. Each subject's observed state η(t) ∈ {at risk, causes 1..K, censored} is then known at every time t.
+- **Model**: Use SoftComp's residual feed-forward network with input [x; t] and K + 1 output logits. Prepend an at-risk logit fixed at 0 and apply a (K + 2)-class softmax to obtain observed-state probabilities.
+- **Loss**: In each minibatch, sample M = 4 times per subject from the empirical distribution of training event times and minimize observed-state cross-entropy at those times. All labels are observed, and the loss is strictly proper without estimating the censoring distribution. There is no time augmentation, auxiliary Brier term, or postprocessing.
+- **Prediction**: Recover CIFs from observed-state probabilities through the Aalen–Johansen recursion ΔΛ_k = [ΔP_k]₊ / P_0(t-). The resulting CIFs are monotone and satisfy S + Σ_k F_k = 1.
+- **Default configuration**: Width 32, 1 residual block, 4 times per subject, learning rate 1e-3, weight decay 1e-3, batch size 256, and 1000 epochs, shared across all six datasets.
+- **Comparison: manuscript SoftComp**: A (K + 1)-class softmax directly outputs (S, F_1, …, F_K). Its loss combines Eq. (5), cross-entropy at the observed time, with time augmentation: M times per subject drawn from Unif(0, Y_i), labeled as survival with weight 0.5; the manuscript default is M = 2. Predictions undergo PAV and simplex postprocessing. Its population target depends on the censoring distribution and M and is not the CIF.
 
-### 2.1 代码
+### 2.1 Code
 
-| 文件 | 类 / 函数 | 作用 |
+| File | Class / Function | Purpose |
 |---|---|---|
-| `crsoft_model/joint_softcomp.py` | `JointSoftComp` | JointSoftComp 模型：训练与预测 CIF |
-| | `observed_state_labels` | 由 (Y, Δ) 构造观测状态标签 η(t) |
-| | `aalen_johansen_from_observed` | 由观测状态概率经 AJ 递推得到 CIF 和生存函数 |
-| `crsoft_model/crsoft.py`（原有） | `CRSoftNet` | 论文版 SoftComp；也是 `JointSoftComp` 的父类（网络结构和训练循环） |
-| `evaluation/postprocess.py`（原有） | `isotonic_project_cif`、`enforce_cif_simplex` | 论文版 SoftComp 的 PAV 和 simplex 后处理 |
-| `evaluation/survival.py`（原有） | `evaluate_cif_metrics` | C_td (Antolini) 和 IPCW IBS |
-| `evaluation/simulation.py`（原有） | `compute_mse_accuracy` | 对真实 CIF 的 MSE |
+| `crsoft_model/joint_softcomp.py` | `JointSoftComp` | JointSoftComp training and CIF prediction |
+| | `observed_state_labels` | Construct observed-state labels η(t) from (Y, Δ) |
+| | `aalen_johansen_from_observed` | Recover CIFs and survival from observed-state probabilities through AJ recursion |
+| `crsoft_model/crsoft.py` (existing) | `CRSoftNet` | Manuscript SoftComp; also the parent class of `JointSoftComp`, providing its network structure and training loop |
+| `evaluation/postprocess.py` (existing) | `isotonic_project_cif`, `enforce_cif_simplex` | PAV and simplex postprocessing for manuscript SoftComp |
+| `evaluation/survival.py` (existing) | `evaluate_cif_metrics` | C_td (Antolini) and IPCW IBS |
+| `evaluation/simulation.py` (existing) | `compute_mse_accuracy` | MSE against the true CIF |
 
-先完成第 1 节的本地环境设置，再运行以下示例（`p`、`K` 和数据张量由调用者提供）：
+Complete the setup in Section 1 before running this example. The caller supplies `p`, `K`, and the data tensors:
 
 ```python
 from competing_risks.crsoft_model.joint_softcomp import JointSoftComp
 
-model = JointSoftComp(input_dim=p, num_causes=K)  # 默认宽 32、1 层
-model.fit(X, Y, Delta)  # 默认配置训练
+model = JointSoftComp(input_dim=p, num_causes=K)  # Default width 32, 1 block
+model.fit(X, Y, Delta)  # Train with the default configuration
 cif, survival = model.predict_cif_survival_grid(X_test, times)
 ```
 
-### 2.2 背景文档
+### 2.2 Background Documents
 
-原 Meta 内部页面已保存为 HTML，可以从仓库下载后用浏览器打开：
+The original Meta internal pages are saved as HTML files. Download them from the repository and open them in a browser:
 
 - [SoftComp: censoring dependence of the current loss, and Option A](docs/references/softcomp_censoring_dependence_option_a.html)
 - [JointSoftComp: two follow-up tests](docs/references/jointsoftcomp_two_follow_up_tests.html)
 
-HTML 保留原文中的历史结果；下面的表格报告本地复现实验结果。
+The HTML documents retain the original historical results. The tables below report local reproduction results.
 
-## 3. 实验一：最简单设定（单预测变量、无删失）
+## 3. Experiment I: Simplest Setting (One Predictor, No Censoring)
 
-### 3.1 实验设置和方法
+### 3.1 Setup and Methods
 
-- **数据**: x ∼ N(0, 1)；单一事件，hazard 为 0.05·exp(βx)，β ∈ {0, log 1.5, log 2}；无删失。训练 n = 200，重复 200 次；测试集为 5 万人的无删失数据（固定种子）。
-- **指标**: 10 年的 Brier score、AUC(10)（cases 为 T ≤ 10，controls 为 T > 10）、IPA = 1 − Brier / Brier(无协变量模型)、预测与真实 10 年风险的 MSE。
-- **方法**:
-  - SoftComp（论文版 loss 与后处理），增广时刻数 M = 0、1、2（论文默认）、4、8，权重 0.5；
-  - JointSoftComp，每人 M = 1、2、4（默认）、8 个时刻；
-  - Cox（单协变量，Breslow 基线）、真实模型、无协变量模型（训练集的边际风险）；
-  - SoftComp loss 的总体极小值，即训练数据无穷多时网络收敛到的函数：π(10 | x) = 1 / (1 + 0.5·M·e^z·E₁(z))，z = 10·0.05·e^{βx}，E₁ 为指数积分。直接数值计算，不需要训练。
+- **Data**: x ∼ N(0, 1), a single event type with hazard 0.05·exp(βx), and β ∈ {0, log 1.5, log 2}. There is no censoring. Training n = 200, with 200 repetitions. The test set contains 50,000 uncensored subjects generated with a fixed seed.
+- **Metrics**: Brier score at 10 years, AUC(10) with cases T ≤ 10 and controls T > 10, IPA = 1 − Brier / Brier(no-covariate model), and MSE between predicted and true 10-year risks.
+- **Methods**:
+  - SoftComp with the manuscript loss and postprocessing, M = 0, 1, 2 (manuscript default), 4, or 8 augmentation times, with weight 0.5.
+  - JointSoftComp with M = 1, 2, 4 (default), or 8 sampled times per subject.
+  - Cox with one covariate and a Breslow baseline, the true model, and the no-covariate model using the training set's marginal risk.
+  - The population minimizer of the SoftComp loss, the function learned in the limit of infinite training data: π(10 | x) = 1 / (1 + 0.5·M·e^z·E₁(z)), where z = 10·0.05·e^{βx} and E₁ is the exponential integral. It is computed numerically without training.
 
-### 3.2 用到的代码
+### 3.2 Code
 
-| 角色 | 文件 | 函数 |
+| Role | File | Functions |
 |---|---|---|
-| 生成数据 | `experiments/joint_softcomp/simple.py` | `simulate`（生成 x 和 T）、`true_risk`（真实 10 年风险） |
-| 模型 | `simple.py` | `predict_softcomp`（`CRSoftNet` 加后处理）、`predict_joint`（`JointSoftComp`）、`predict_cox`、`softcomp_limit` 与 `scaled_exp1`（总体极小值） |
-| 评估 | `simple.py` | `interpolate`（x 网格上的预测插值到测试集）、`auc`、`evaluate`、`summarize` |
-| 运行入口 | `simple.py` 的 `main` | 一次运行一个 (β, 方法, M)，输出 `simple_b{β}_{方法}_m{M}_r{起始重复}.json`；`reference` 输出 Cox、真实模型、无协变量模型和各 M 的总体极小值 |
-| 输出结果 | `experiments/joint_softcomp/analyze_simple.py` | 合并各段重复，按 β 输出 Brier、AUC、IPA、MSE 的表 |
+| Data generation | `experiments/joint_softcomp/simple.py` | `simulate` (generate x and T), `true_risk` (true 10-year risk) |
+| Models | `simple.py` | `predict_softcomp` (`CRSoftNet` with postprocessing), `predict_joint` (`JointSoftComp`), `predict_cox`, `softcomp_limit` and `scaled_exp1` (population minimizer) |
+| Evaluation | `simple.py` | `interpolate` (interpolate predictions from the x grid to test subjects), `auc`, `evaluate`, `summarize` |
+| Entry point | `main` in `simple.py` | Run one (β, method, M) combination and write `simple_b{beta}_{method}_m{M}_r{rep_start}.json`; `reference` outputs Cox, the true model, the no-covariate model, and population minimizers for each M |
+| Result summary | `experiments/joint_softcomp/analyze_simple.py` | Merge repetition batches and report Brier, AUC, IPA, and MSE by β |
 
 ### 3.3 Quick Start
 
-运行两次 reference 重复，检查数据生成、参考模型评估和 JSON 输出：
+Run two reference repetitions to check data generation, reference-model evaluation, and JSON output:
 
 ```bash
 python -m competing_risks.experiments.joint_softcomp.simple \
@@ -129,7 +123,7 @@ python -m competing_risks.experiments.joint_softcomp.simple \
     --out-dir /tmp/joint_softcomp
 ```
 
-输出为 `/tmp/joint_softcomp/simple_b0.0000_reference_m0_r0.json`。
+Output: `/tmp/joint_softcomp/simple_b0.0000_reference_m0_r0.json`.
 
 ### 3.4 Full Experiments
 
@@ -137,18 +131,16 @@ python -m competing_risks.experiments.joint_softcomp.simple \
 bash scripts/run_joint_softcomp.sh
 ```
 
-脚本运行三个 β、SoftComp 的五个 M、JointSoftComp 的四个 M，以及参考模型；
-每组 200 次重复，最后自动汇总。结果写入 `/tmp/joint_softcomp/full/simple/`，
-汇总保存在 `summary.txt`。完整循环见[脚本](scripts/run_joint_softcomp.sh)。
+The script runs all three β values, five M values for SoftComp, four M values for JointSoftComp, and the reference models, with 200 repetitions per setting. It summarizes the results automatically. Outputs are written to `/tmp/joint_softcomp/full/simple/`, with the summary in `summary.txt`. See the [script](scripts/run_joint_softcomp.sh) for the complete loops.
 
-### 3.5 实验结果
+### 3.5 Results
 
-以下三张表按 β 分组，展示所有拟合模型配置及真实模型参照。
-每个拟合配置均有 200 次重复，测试集固定为 50,000 人。
+The three tables below group all fitted-model configurations and the true-model reference by β.
+Each fitted configuration has 200 repetitions, with the same fixed test set of 50,000 subjects.
 
-**β = 0**（每个拟合方法 200 次重复，均值及样本标准差）：
+**β = 0** (200 repetitions per fitted method; mean and sample standard deviation):
 
-| 方法 | Brier(10) ↓ | AUC(10) ↑ | IPA ↑ | MSE vs truth ↓ |
+| Method | Brier(10) ↓ | AUC(10) ↑ | IPA ↑ | MSE vs truth ↓ |
 |---|---|---|---|---|
 | SoftComp, M=0 | 0.6034 (0.0000) | **0.5000 (0.0009)** | -1.5075 (0.0203) | 0.3679 (0.0000) |
 | SoftComp, M=1 | 0.3182 (0.0105) | 0.4999 (0.0029) | -0.3222 (0.0444) | 0.0806 (0.0106) |
@@ -161,11 +153,11 @@ bash scripts/run_joint_softcomp.sh
 | JointSoftComp, M=8 | 0.2432 (0.0032) | 0.4998 (0.0030) | -0.0106 (0.0106) | 0.0037 (0.0030) |
 | Cox | 0.2412 (0.0021) | 0.5000 (0.0028) | -0.0023 (0.0029) | 0.0019 (0.0021) |
 | No covariate | **0.2406 (0.0020)** | 0.5000 (0.0000) | **0.0000 (0.0000)** | **0.0013 (0.0020)** |
-| 真实模型（oracle 参照） | 0.2393 | 0.5000 | -0.0000 | 0.0000 |
+| True model (oracle reference) | 0.2393 | 0.5000 | -0.0000 | 0.0000 |
 
-**β = log 1.5**（每个拟合方法 200 次重复，均值及样本标准差）：
+**β = log 1.5** (200 repetitions per fitted method; mean and sample standard deviation):
 
-| 方法 | Brier(10) ↓ | AUC(10) ↑ | IPA ↑ | MSE vs truth ↓ |
+| Method | Brier(10) ↓ | AUC(10) ↑ | IPA ↑ | MSE vs truth ↓ |
 |---|---|---|---|---|
 | SoftComp, M=0 | 0.5916 (0.0000) | 0.5095 (0.0340) | -1.4343 (0.0204) | 0.3690 (0.0000) |
 | SoftComp, M=1 | 0.3076 (0.0119) | 0.6393 (0.0030) | -0.2658 (0.0509) | 0.0825 (0.0121) |
@@ -178,11 +170,11 @@ bash scripts/run_joint_softcomp.sh
 | JointSoftComp, M=8 | 0.2307 (0.0028) | 0.6380 (0.0076) | 0.0507 (0.0086) | 0.0035 (0.0027) |
 | Cox | **0.2288 (0.0020)** | **0.6398 (0.0000)** | **0.0585 (0.0036)** | **0.0017 (0.0019)** |
 | No covariate | 0.2430 (0.0021) | 0.5000 (0.0000) | 0.0000 (0.0000) | 0.0158 (0.0020) |
-| 真实模型（oracle 参照） | 0.2270 | 0.6398 | 0.0603 | 0.0000 |
+| True model (oracle reference) | 0.2270 | 0.6398 | 0.0603 | 0.0000 |
 
-**β = log 2**（每个拟合方法 200 次重复，均值及样本标准差）：
+**β = log 2** (200 repetitions per fitted method; mean and sample standard deviation):
 
-| 方法 | Brier(10) ↓ | AUC(10) ↑ | IPA ↑ | MSE vs truth ↓ |
+| Method | Brier(10) ↓ | AUC(10) ↑ | IPA ↑ | MSE vs truth ↓ |
 |---|---|---|---|---|
 | SoftComp, M=0 | 0.5749 (0.0000) | 0.5239 (0.0615) | -1.3396 (0.0190) | 0.3735 (0.0000) |
 | SoftComp, M=1 | 0.2887 (0.0143) | 0.7291 (0.0002) | -0.1750 (0.0594) | 0.0851 (0.0143) |
@@ -195,9 +187,9 @@ bash scripts/run_joint_softcomp.sh
 | JointSoftComp, M=8 | 0.2080 (0.0024) | 0.7291 (0.0008) | 0.1534 (0.0074) | 0.0030 (0.0023) |
 | Cox | **0.2064 (0.0017)** | **0.7291 (0.0000)** | **0.1599 (0.0043)** | **0.0014 (0.0017)** |
 | No covariate | 0.2457 (0.0020) | 0.5000 (0.0000) | 0.0000 (0.0000) | 0.0392 (0.0020) |
-| 真实模型（oracle 参照） | 0.2050 | 0.7291 | 0.1614 | 0.0000 |
+| True model (oracle reference) | 0.2050 | 0.7291 | 0.1614 | 0.0000 |
 
-SoftComp loss 总体极小值的 Brier（数值计算，不是训练结果）：
+Brier scores of the SoftComp loss population minimizers, computed numerically rather than through training:
 
 | M | β=0 | β=log 1.5 | β=log 2 |
 |---|---|---|---|
@@ -207,41 +199,41 @@ SoftComp loss 总体极小值的 Brier（数值计算，不是训练结果）：
 | 4 | 0.2414 | 0.2343 | 0.2202 |
 | 8 | 0.2730 | 0.2699 | 0.2609 |
 
-### 3.6 分析
+### 3.6 Analysis
 
-- **Brier 最佳方法随设定变化。** β=0 时无协变量模型最好（0.2406）；β 非零时 Cox 最好（0.2288 / 0.2064）。JointSoftComp 默认 M=4 为 0.2432 / 0.2306 / 0.2082；β=0 时 SoftComp M=4 的 0.2419 更低，不能说 JointSoftComp 在所有设定都优于 SoftComp。
-- **SoftComp 对 augmentation 数量敏感。** M=0 时 Brier 为 0.6034 / 0.5916 / 0.5749；M=4 时降至 0.2419 / 0.2349 / 0.2219，再增加到 M=8 会回升。JointSoftComp 的 M=1/2/4/8 是 loss 的采样时刻数，Brier 在每个 β 下相差不到 0.0003。
-- **排序与校准应分开看。** β=log 2 时许多方法的 AUC 都接近 0.7291，但 Brier 和对真值的 MSE 明显不同。最佳值标记只比较均值，不代表统计显著性。
+- **The best Brier score depends on the setting.** At β=0, the no-covariate model performs best (0.2406); at nonzero β, Cox performs best (0.2288 / 0.2064). JointSoftComp with default M=4 scores 0.2432 / 0.2306 / 0.2082. At β=0, SoftComp with M=4 has a lower score of 0.2419, so JointSoftComp does not outperform SoftComp in every setting.
+- **SoftComp is sensitive to the amount of augmentation.** Its Brier scores are 0.6034 / 0.5916 / 0.5749 at M=0, fall to 0.2419 / 0.2349 / 0.2219 at M=4, and increase again at M=8. JointSoftComp's M=1/2/4/8 controls the number of sampled loss-evaluation times; its Brier scores differ by less than 0.0003 within each β setting.
+- **Discrimination and calibration should be considered separately.** At β=log 2, many methods have AUC values near 0.7291, while their Brier scores and MSE against truth differ substantially. Best-value markings compare means and do not establish statistical significance.
 
-## 4. 实验二：有删失 vs. 无删失（Case II/III）
+## 4. Experiment II: Censored vs. Uncensored Data (Cases II/III)
 
-本地此表只比较下面实际运行的四种方法。
+The local results compare only the four methods actually run below.
 
-### 4.1 实验设置和方法
+### 4.1 Setup and Methods
 
-- **数据**: Case II v4 (K = p = 3) 和 Case III v5 (K = 3, p = 4)；正式种子的前 10 次重复（训练种子 130000 + r / 330000 + r，测试种子 140000 + r / 340000 + r）；训练 5000（4500 拟合、500 验证），测试 1000。
-- **两种条件**: 有删失为论文设置（指数删失，校准为 P(C ≤ median T) = 0.5）；无删失版本保留同一批对象的协变量、真实事件时间和原因，只去掉训练集和测试集里的删失。两种条件使用同一个评估网格：有删失测试集事件时间分位数至 97.5%；Case III 加入源码定义的四个固定时刻。Case II 源码未提供额外固定时刻，因此没有添加。Case II 原正式 runner 使用 90% 网格，本次补充实验使用 97.5%。
-- **方法**: JointSoftComp（默认配置）；SoftComp（论文配置，M = 2）；SoftComp-noaug（同一配置但 M = 0）；NeuralFG（论文配置，Case II/III 中最好的基线）。
-- **指标**: 对真实 CIF 的 MSE (×10⁻³)、C_td、IBS。两种条件下测试集不同（C_td 使用源码的 Antolini 可比对统计量，只有 IBS 使用删失 KM 的 IPCW），所以 C_td 和 IBS 只在同一条件内比较；MSE 都对真实 CIF、在同一网格上计算，可以跨条件比较。
+- **Data**: Case II v4 (K = p = 3) and Case III v5 (K = 3, p = 4), using the first 10 formal-seed repetitions. Training seeds are 130000 + r / 330000 + r, and test seeds are 140000 + r / 340000 + r. There are 5000 training subjects (4500 for fitting, 500 for validation) and 1000 test subjects.
+- **Conditions**: The censored condition follows the manuscript setup: exponential censoring calibrated to P(C ≤ median T) = 0.5. The uncensored condition retains the same subjects' covariates, true event times, and causes, removing censoring from both training and test sets. Both conditions use the same evaluation grid: censored-test event-time quantiles up to 97.5%, with the four fixed times defined in the Case III source added. No additional fixed times are supplied by the Case II source, so none are added. The original Case II formal runner uses a 90% grid; this supplementary experiment uses 97.5%.
+- **Methods**: JointSoftComp with its default configuration; SoftComp with the manuscript configuration, M = 2; SoftComp-noaug with the same configuration but M = 0; and NeuralFG with its manuscript configuration, the best baseline in Cases II/III.
+- **Metrics**: MSE against the true CIF (×10⁻³), C_td, and IBS. The test sets differ across conditions. C_td uses the source's Antolini comparable-pair statistic; only IBS uses IPCW from the censoring KM estimate. Compare C_td and IBS within each condition. MSE is computed against the true CIF on the same grid and can be compared across conditions.
 
-### 4.2 用到的代码
+### 4.2 Code
 
-| 角色 | 文件 | 函数 |
+| Role | File | Functions |
 |---|---|---|
-| 生成数据 | `experiments/case2_v4/run.py`、`experiments/case3_v5/run.py`（原有） | `prepare_data`（新增 `censor_rate` 参数，默认 0.5） |
-| | `data/case2_v4.py`、`data/case3_v5.py`（原有） | `generate_parameters`、`generate_data`、`compute_cif`（真实 CIF） |
-| | `data/utils.py` | `solve_inverse_cdf`、`assign_causes_and_censor`、`generate_test_observations`（`censor_rate = 0` 时不删失） |
-| | `evaluation/survival.py`（原有） | `build_evaluation_time_grid` |
-| | `experiments/joint_softcomp/uncensored.py` | `prepare`（无删失时生成同一批对象，并沿用有删失版本的评估网格） |
-| 模型 | `uncensored.py` | `build_method`：JointSoftComp 直接构建；SoftComp、SoftComp-noaug 和 NeuralFG 取自 `run.py` 的 `build_specs` |
-| | `baseline_models/neural_fine_gray.py`（原有） | `NeuralFG` |
-| 评估 | `evaluation/simulation.py`、`evaluation/survival.py`（原有） | `compute_mse_accuracy`、`compute_dist`、`evaluate_cif_metrics` |
-| 运行入口 | `uncensored.py` 的 `run`、`main` | 一次运行一个 (case, 方法, 重复, 条件)，输出 `case{c}_rep{r}_{方法}.json` |
-| 输出结果 | `experiments/joint_softcomp/analyze_uncensored.py` | 配对两种条件下的同一批重复，输出 MSE、C_td、IBS 的表 |
+| Data generation | `experiments/case2_v4/run.py`, `experiments/case3_v5/run.py` (existing) | `prepare_data` (added `censor_rate` parameter, default 0.5) |
+| | `data/case2_v4.py`, `data/case3_v5.py` (existing) | `generate_parameters`, `generate_data`, `compute_cif` (true CIF) |
+| | `data/utils.py` | `solve_inverse_cdf`, `assign_causes_and_censor`, `generate_test_observations` (no censoring when `censor_rate = 0`) |
+| | `evaluation/survival.py` (existing) | `build_evaluation_time_grid` |
+| | `experiments/joint_softcomp/uncensored.py` | `prepare` (generate the same subjects without censoring and retain the censored condition's evaluation grid) |
+| Models | `uncensored.py` | `build_method`: construct JointSoftComp directly; obtain SoftComp, SoftComp-noaug, and NeuralFG from `build_specs` in `run.py` |
+| | `baseline_models/neural_fine_gray.py` (existing) | `NeuralFG` |
+| Evaluation | `evaluation/simulation.py`, `evaluation/survival.py` (existing) | `compute_mse_accuracy`, `compute_dist`, `evaluate_cif_metrics` |
+| Entry point | `run`, `main` in `uncensored.py` | Run one (case, method, repetition, condition) combination and write `case{c}_rep{r}_{method}.json` |
+| Result summary | `experiments/joint_softcomp/analyze_uncensored.py` | Pair the same repetitions across conditions and report MSE, C_td, and IBS |
 
 ### 4.3 Quick Start
 
-先运行 Case II 的一个无删失 JointSoftComp 重复：
+Run one uncensored JointSoftComp repetition for Case II:
 
 ```bash
 python -m competing_risks.experiments.joint_softcomp.uncensored \
@@ -253,8 +245,8 @@ python -m competing_risks.experiments.joint_softcomp.uncensored \
     --out-dir /tmp/joint_softcomp/quick_uncensored
 ```
 
-输出为 `/tmp/joint_softcomp/quick_uncensored/case2_rep00_JointSoftComp.json`。
-此命令使用完整的默认训练配置，只运行一个 Case / 方法 / 条件。
+Output: `/tmp/joint_softcomp/quick_uncensored/case2_rep00_JointSoftComp.json`.
+This command uses the full default training configuration for one case / method / condition.
 
 ### 4.4 Full Experiments
 
@@ -262,15 +254,12 @@ python -m competing_risks.experiments.joint_softcomp.uncensored \
 bash scripts/run_joint_softcomp_uncensored.sh
 ```
 
-脚本运行 Case II / III、四种方法和有删失 / 无删失两种条件，每组 10 次配对重复，
-最后自动汇总。结果写入 `/tmp/joint_softcomp/full/uncensored/` 的 `censored/`
-和 `uncensored/` 子目录，汇总保存在 `summary.txt`。
-完整循环见[脚本](scripts/run_joint_softcomp_uncensored.sh)。
+The script runs Cases II / III, all four methods, and both censored / uncensored conditions, with 10 paired repetitions per setting. It summarizes the results automatically. Outputs are written to the `censored/` and `uncensored/` subdirectories of `/tmp/joint_softcomp/full/uncensored/`, with the summary in `summary.txt`. See the [script](scripts/run_joint_softcomp_uncensored.sh) for the complete loops.
 
-### 4.5 实验结果
+### 4.5 Results
 
-每组 10 次配对重复，均值（样本标准差）。**MSE 数值乘以 1,000**。
-粗体分别在同一个 Case 和删失条件内选择最佳指标。
+Each setting has 10 paired repetitions. Entries are means (sample standard deviations).
+**MSE values are multiplied by 1,000.** Bold marks the best metric within the same case and censoring condition.
 
 | Case | Method | Censored MSE ↓ | C_td ↑ | IBS ↓ | Uncensored MSE ↓ | C_td ↑ | IBS ↓ |
 |---|---|---|---|---|---|---|---|
@@ -283,49 +272,47 @@ bash scripts/run_joint_softcomp_uncensored.sh
 | III v5 | SoftComp-noaug | 9.22 (0.60) | 0.6825 (0.0078) | 0.1288 (0.0022) | 61.14 (2.38) | 0.6690 (0.0057) | 0.1618 (0.0015) |
 | III v5 | NeuralFG | 3.44 (0.50) | 0.6528 (0.0122) | 0.1266 (0.0024) | 2.24 (0.25) | 0.6607 (0.0067) | 0.1235 (0.0022) |
 
-### 4.6 分析
+### 4.6 Analysis
 
-- **JointSoftComp 在四个 Case/条件中都取得最低 MSE 和 IBS。** 有删失时它的 MSE 为 2.28 / 1.12，而 SoftComp 为 8.12 / 3.20。
-- **C_td 的最佳方法因 Case 而异。** Case II 两种条件都由 JointSoftComp 取得最高均值；Case III 两种条件都由 SoftComp 取得最高均值。无删失 Case III 原先三位小数都显示 0.678，四位小数可看出 0.6782 对 0.6776，不能标成并列第一。
-- **去掉删失后，SoftComp 的 MSE 增大。** Case II 为 8.12 → 14.29，Case III 为 3.20 → 4.31；不带 augmentation 时为 20.33 → 59.49、9.22 → 61.14。JointSoftComp 和 NeuralFG 的 MSE 则降低。
+- **JointSoftComp achieves the lowest MSE and IBS in all four case/condition combinations.** Under censoring, its MSE is 2.28 / 1.12, compared with 8.12 / 3.20 for SoftComp.
+- **The best C_td depends on the case.** JointSoftComp has the highest mean in both Case II conditions; SoftComp has the highest mean in both Case III conditions. In uncensored Case III, both previously displayed as 0.678 at three decimal places. Four decimal places distinguish 0.6782 from 0.6776, so they should not be marked as tied for first.
+- **Removing censoring increases SoftComp's MSE.** Case II changes from 8.12 → 14.29, and Case III from 3.20 → 4.31. Without augmentation, the changes are 20.33 → 59.49 and 9.22 → 61.14. JointSoftComp and NeuralFG have lower MSE without censoring.
 
-本次核对了全部 20 个 Case/重复的配对数据与网格。原运行环境依赖版本未知，
-Case II 固定时刻也未提供，故这些数字是本地测量值，不声称与原服务器完全一致。
-详细约定和修复记录见[运行协议](local_validation/readme_full/protocol.txt)。
+Paired data and evaluation grids were checked for all 20 case/repetition pairs. The original environment's dependency versions are unknown, and no additional fixed evaluation times were provided for Case II. These are local measurements, not a claim of exact agreement with the original server. See the [run protocol](local_validation/readme_full/protocol.txt) for conventions and fixes.
 
-## 5. 实验三：固定时间范围的删失水平
+## 5. Experiment III: Censoring Levels over a Fixed Time Horizon
 
-下面的实证数字来自本地运行。
+The empirical results below come from local runs.
 
-### 5.1 实验设置和方法
+### 5.1 Setup and Methods
 
-- **删失定义**: 固定 τ = 20。删失时间服从指数分布，速率校准为在 τ 之前被删失的比例为 ρ，即 P(C < min(T, τ)) = ρ；随访到 τ 截止，Y = min(T, C, τ)。ρ ∈ {0, 20%, 50%, 80%}；ρ = 0 时 [0, τ] 上的数据完整。实际删失比例保存在每个原始结果的 `censored_before_tau_train` 字段中。
-- **四组检验**:
-  - `aj-check`：Case III 数据（n = 10000），模型只输入常数（即估计边际 CIF），与非参数 AJ 估计和真实边际 CIF 比较；
-  - `case3`：Case III DGP，独立删失；
-  - `depcens`：Case III DGP，协变量依赖删失（速率乘 e^{0.8 x₁}；ρ = 0 时与 `case3` 相同，不重复运行）；
-  - `constant`：常数 cause-specific hazard，K = 3、p = 4，λ_k(x) = exp(a_k + b_kᵀx)，基线速率 0.05 / 0.035 / 0.025，独立删失。
-- **样本与重复**: 训练 5000、测试 1000，数据种子 30000 + s / 40000 + s，s = 0, …, 4。测试集不删失，指标在 (0, τ] 上 100 个等距点计算，所以 C_td 和 IBS 不需要 IPCW，不同 ρ 可以直接比较。
-- **方法**: 论文版 SoftComp（`softcomp`，M = 2、权重 0.5、weight decay 3e-3、含后处理）vs. JointSoftComp（`joint`，默认配置）。
-- **指标**: 对真实 CIF 的 MSE (×10⁻³)、C_td、IBS，以及 t = 20 处每类事件的平均偏差 F̂_k − F_k。
-- **理论表**: 常数 hazard 例子（λ₁ = 0.10、λ₂ = 0.05，看原因 1；0.5·M = 1；τ = 20）下各训练项的总体极小值，由数值积分得到。
+- **Censoring definition**: Fix τ = 20. Censoring times follow an exponential distribution, with the rate calibrated to a fraction ρ censored before τ: P(C < min(T, τ)) = ρ. Follow-up ends at τ, so Y = min(T, C, τ). Use ρ ∈ {0, 20%, 50%, 80%}; at ρ = 0, data are complete on [0, τ]. The realized training censoring fraction is saved in each raw result's `censored_before_tau_train` field.
+- **Four tests**:
+  - `aj-check`: Case III data (n = 10000), with only a constant model input to estimate marginal CIFs, compared with nonparametric AJ estimates and the true marginal CIFs.
+  - `case3`: Case III DGP with independent censoring.
+  - `depcens`: Case III DGP with covariate-dependent censoring; multiply the rate by e^{0.8 x₁}. At ρ = 0 this matches `case3`, so it is not run again.
+  - `constant`: Constant cause-specific hazards, K = 3 and p = 4, with λ_k(x) = exp(a_k + b_kᵀx), baseline rates 0.05 / 0.035 / 0.025, and independent censoring.
+- **Sample sizes and repetitions**: 5000 training subjects and 1000 test subjects, with data seeds 30000 + s / 40000 + s for s = 0, …, 4. The test set is uncensored, and metrics are evaluated at 100 equally spaced points in (0, τ]. C_td and IBS therefore do not require IPCW, and results can be compared directly across ρ values.
+- **Methods**: Manuscript SoftComp (`softcomp`, M = 2, augmentation weight 0.5, weight decay 3e-3, with postprocessing) versus JointSoftComp (`joint`, default configuration).
+- **Metrics**: MSE against the true CIF (×10⁻³), C_td, IBS, and mean cause-specific bias F̂_k − F_k at t = 20.
+- **Theoretical table**: Population minimizers of each training term, computed by numerical integration for a constant-hazard example: λ₁ = 0.10, λ₂ = 0.05, cause 1, 0.5·M = 1, and τ = 20.
 
-### 5.2 用到的代码
+### 5.2 Code
 
-| 角色 | 文件 | 函数 |
+| Role | File | Functions |
 |---|---|---|
-| 生成数据 | `experiments/joint_softcomp/censoring_levels.py` | `simulate`、`_event_times`、`_censoring_times`（按 ρ 校准删失速率）、`_constant_hazards`、`constant_cif` |
-| | `data/case3_v5.py`、`data/utils.py`（原有） | `generate_parameters`、`compute_cif`、`solve_inverse_cdf` |
-| 模型 | `censoring_levels.py` | `train`（`CRSoftNet` 或 `JointSoftComp`）、`predict`（SoftComp 做后处理） |
-| 评估 | `censoring_levels.py` | `run_simulation`、`_horizon_bias`、`aalen_johansen`（非参数 AJ 估计）、`run_aj_check` |
-| | `evaluation/simulation.py`、`evaluation/survival.py`（原有） | `compute_mse_accuracy`、`evaluate_cif_metrics` |
-| 运行入口 | `censoring_levels.py` 的 `main` | 一次运行一个 (检验, 方法, ρ, 种子)，输出 `{检验}_rho{ρ}_{方法}_seed{s}.json` |
-| 输出结果 | `censoring_levels.py` 的 `summarize` 子命令 | 按 (检验, ρ, 方法) 汇总的表 |
-| 理论表 | `experiments/joint_softcomp/population_targets.py`（只用标准库） | `censoring_rate`、`loss_targets`、`aalen_johansen_from_observed`、`print_table` |
+| Data generation | `experiments/joint_softcomp/censoring_levels.py` | `simulate`, `_event_times`, `_censoring_times` (calibrate the censoring rate to ρ), `_constant_hazards`, `constant_cif` |
+| | `data/case3_v5.py`, `data/utils.py` (existing) | `generate_parameters`, `compute_cif`, `solve_inverse_cdf` |
+| Models | `censoring_levels.py` | `train` (`CRSoftNet` or `JointSoftComp`), `predict` (postprocess SoftComp predictions) |
+| Evaluation | `censoring_levels.py` | `run_simulation`, `_horizon_bias`, `aalen_johansen` (nonparametric AJ estimate), `run_aj_check` |
+| | `evaluation/simulation.py`, `evaluation/survival.py` (existing) | `compute_mse_accuracy`, `evaluate_cif_metrics` |
+| Entry point | `main` in `censoring_levels.py` | Run one (test, method, ρ, seed) combination and write `{test}_rho{rho}_{method}_seed{s}.json` |
+| Result summary | `summarize` subcommand in `censoring_levels.py` | Summarize results by (test, ρ, method) |
+| Theoretical table | `experiments/joint_softcomp/population_targets.py` (standard library only) | `censoring_rate`, `loss_targets`, `aalen_johansen_from_observed`, `print_table` |
 
 ### 5.3 Quick Start
 
-用两个 epochs 检查固定 hazard、50% 删失下的训练和评估流程：
+Use two epochs to check training and evaluation with constant hazards and 50% censoring:
 
 ```bash
 python -m competing_risks.experiments.joint_softcomp.censoring_levels \
@@ -338,8 +325,8 @@ python -m competing_risks.experiments.joint_softcomp.censoring_levels \
     --out-dir /tmp/joint_softcomp/quick_censoring
 ```
 
-输出为 `/tmp/joint_softcomp/quick_censoring/constant_rho0.5_joint_seed0.json`。
-两轮训练只用于检查流程；下面的完整实验使用默认 1,000 epochs。
+Output: `/tmp/joint_softcomp/quick_censoring/constant_rho0.5_joint_seed0.json`.
+Two training epochs only check the workflow. The full experiment below uses the default 1,000 epochs.
 
 ### 5.4 Full Experiments
 
@@ -347,24 +334,20 @@ python -m competing_risks.experiments.joint_softcomp.censoring_levels \
 bash scripts/run_joint_softcomp_censoring.sh
 ```
 
-脚本运行四个删失水平、两种方法、Case III / 常数 hazard / 协变量依赖删失设定，
-每组 5 次重复；另外运行无协变量 AJ 检查、结果汇总和理论表。
-结果写入 `/tmp/joint_softcomp/full/censoring/`，汇总保存在 `summary.txt`，
-理论表保存在 `population_targets.txt`。
-完整循环见[脚本](scripts/run_joint_softcomp_censoring.sh)。
+The script runs four censoring levels, both methods, and the Case III / constant-hazard / covariate-dependent-censoring settings, with 5 repetitions per setting. It also runs the no-covariate AJ checks, result summary, and theoretical table. Outputs are written to `/tmp/joint_softcomp/full/censoring/`, with the summary in `summary.txt` and the theoretical table in `population_targets.txt`. See the [script](scripts/run_joint_softcomp_censoring.sh) for the complete loops.
 
-### 5.5 实验结果
+### 5.5 Results
 
-**理论表**：原因 1 的总体极小值（真实 F₁：t = 5 时 0.352，t = 20 时 0.633）。
+**Theoretical table**: Population minimizers for cause 1. The true F₁ is 0.352 at t = 5 and 0.633 at t = 20.
 
-| ρ | t | 式 (5) | 式 (5) + augmentation | Brier 项 | JointSoftComp |
+| ρ | t | Eq. (5) | Eq. (5) + augmentation | Brier term | JointSoftComp |
 |---|---|---|---|---|---|
 | 0 | 5 / 20 | 0.667 / 0.667 | 0.386 / 0.500 | 0.352 / 0.633 | 0.352 / 0.633 |
 | 20% | 5 / 20 | 0.530 / 0.530 | 0.327 / 0.419 | 0.324 / 0.518 | 0.352 / 0.633 |
 | 50% | 5 / 20 | 0.333 / 0.333 | 0.230 / 0.285 | 0.259 / 0.332 | 0.352 / 0.633 |
 | 80% | 5 / 20 | 0.133 / 0.133 | 0.109 / 0.125 | 0.130 / 0.133 | 0.352 / 0.633 |
 
-**本地实证结果**（每组 5 次重复，均值及样本标准差；MSE 数值乘以 1,000）：
+**Local empirical results**: 5 repetitions per setting, with means and sample standard deviations. MSE values are multiplied by 1,000.
 
 | Setting | ρ | Method | MSE ↓ | C_td ↑ | IBS ↓ | Bias at t=20 (causes 1 / 2 / 3) |
 |---|---|---|---|---|---|---|
@@ -391,8 +374,7 @@ bash scripts/run_joint_softcomp_censoring.sh
 | constant | 80% | SoftComp | 48.24 (6.35) | **0.6667 (0.0039)** | 0.1904 (0.0082) | -0.330 / -0.239 / -0.200 |
 | constant | 80% | JointSoftComp | **10.03 (1.77)** | 0.6585 (0.0054) | **0.1534 (0.0020)** | -0.131 / -0.047 / -0.105 |
 
-**无协变量检验**：每组一次运行，10,000 个训练对象；显示 `[0,20]` 上
-与真实边际 CIF 的最大绝对差。非参数 AJ 也参与此表比较。
+**No-covariate check**: One run per setting, with 10,000 training subjects. Entries show the maximum absolute difference from the true marginal CIF on `[0,20]`. The nonparametric AJ estimate is also included in this comparison.
 
 | ρ | SoftComp | JointSoftComp | Nonparametric AJ reference |
 |---|---|---|---|
@@ -401,13 +383,13 @@ bash scripts/run_joint_softcomp_censoring.sh
 | 50% | 0.1507 | 0.0206 | **0.0092** |
 | 80% | 0.1878 | 0.0748 | **0.0359** |
 
-### 5.6 分析
+### 5.6 Analysis
 
-- **JointSoftComp 在全部 11 个设定中 MSE 和 IBS 都更低。** Case III 独立删失时，ρ=0/20%/50%/80% 的 MSE 为 1.01 / 1.20 / 1.73 / 6.07，而 SoftComp 为 5.97 / 7.00 / 11.05 / 25.83。
-- **C_td 并非总由 JointSoftComp 领先。** 常数 hazard 的 ρ=20%/50%/80% 都是 SoftComp 的均值更高；协变量依赖删失的 ρ=80% 则是 JointSoftComp 的 0.6681 高于 SoftComp 的 0.5938。
-- **重删失仍然增加误差。** 常数 hazard、ρ=80% 时 JointSoftComp 的 MSE 为 10.03，SoftComp 为 48.24；JointSoftComp 的 t=20 三类偏差约 -0.131 / -0.047 / -0.105，因此不能把它描述为所有删失水平都近似无偏。
-- **无协变量检查中，非参数 AJ 的误差最小。** JointSoftComp 的最大绝对差在四个删失水平都低于 SoftComp，但高于非参数 AJ；ρ=80% 时分别为 0.0748、0.1878、0.0359。
+- **JointSoftComp has lower MSE and IBS in all 11 settings.** In Case III with independent censoring, its MSE at ρ=0/20%/50%/80% is 1.01 / 1.20 / 1.73 / 6.07, compared with 5.97 / 7.00 / 11.05 / 25.83 for SoftComp.
+- **JointSoftComp does not always lead in C_td.** SoftComp has higher means for constant hazards at ρ=20%/50%/80%. With covariate-dependent censoring at ρ=80%, JointSoftComp scores 0.6681, compared with 0.5938 for SoftComp.
+- **Heavy censoring still increases error.** With constant hazards and ρ=80%, JointSoftComp's MSE is 10.03, compared with 48.24 for SoftComp. Its three cause-specific biases at t=20 are approximately -0.131 / -0.047 / -0.105, so it should not be described as approximately unbiased at every censoring level.
+- **Nonparametric AJ has the lowest error in the no-covariate check.** JointSoftComp's maximum absolute difference is lower than SoftComp's at all four censoring levels but higher than nonparametric AJ's. At ρ=80%, the values are 0.0748, 0.1878, and 0.0359, respectively.
 
-本次所有原始输出、汇总、环境锁和审计都保存在
-[`local_validation/readme_full/`](local_validation/readme_full/)。
-旧的服务器结果与消融记录见[历史文档](docs/historical_results.md)。
+All raw outputs, summaries, the environment lock, and audit records are stored in
+[`local_validation/readme_full/`](local_validation/readme_full/).
+Original server results and ablation records are retained in the [historical archive](docs/historical_results.md).

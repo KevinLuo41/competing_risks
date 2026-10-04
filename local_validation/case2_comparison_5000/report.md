@@ -1,36 +1,36 @@
-# Case II v4：5,000 样本模型比较
+# Case II v4: Model Comparison with 5,000 Training Subjects
 
-本次独立诊断调用复制的原模型与数据生成代码。61 个原 Python 文件运行前后哈希一致；未补写缺失的 evaluation 或后处理。
+This independent diagnostic used the copied original models and data-generation code. The hashes of all 61 original Python files were unchanged before and after the run. Missing evaluation code and postprocessing were not implemented for this diagnostic.
 
-## 配置
+## Configuration
 
-- 训练 5,000 人；独立测试 1,000 人；3 个协变量、3 类风险。
-- 训练删失参数 0.5；测试保留完整模拟事件用于评估。参数生成 seed=42，训练 seeds=130000/130001/130002，固定测试 seed=140000。
-- 每个模型 1,000 epochs；batch=256；32 个隐藏单元、1 个残差块、dropout=0；Adam、lr=0.001、余弦调度、无早停。CPU 2 线程。
-- JointSoftComp：n_times=4，weight_decay=0.001，积分网格 1,000 点。
-- SoftComp：n_aug=2，aug_weight=0.5，weight_decay=0.003；原始预测，无 isotonic/simplex 后处理。
-- 评估 0–18 的 61 个等距时间点。两模型每个种子使用完全相同的数据；模型初始化 seed 为 0/1/2，没有利用测试结果调参。
+- 5,000 training subjects and 1,000 independent test subjects; 3 covariates and 3 competing risks.
+- Training censoring parameter 0.5; complete simulated test events retained for evaluation. Parameter-generation seed=42, training seeds=130000/130001/130002, and fixed test seed=140000.
+- Each model: 1,000 epochs, batch=256, 32 hidden units, 1 residual block, dropout=0, Adam, lr=0.001, cosine scheduling, and no early stopping. CPU with 2 threads.
+- JointSoftComp: n_times=4, weight_decay=0.001, and a 1,000-point integration grid.
+- SoftComp: n_aug=2, aug_weight=0.5, weight_decay=0.003; raw predictions without isotonic/simplex postprocessing.
+- Evaluation at 61 equally spaced time points over 0–18. Both models used identical data for each seed. Model-initialization seeds were 0/1/2; test results were not used for tuning.
 
-## 汇总（3 次平均 ± 样本标准差）
+## Summary (Mean ± Sample Standard Deviation over 3 Runs)
 
-| 指标 | JointSoftComp | SoftComp 原始输出 |
+| Metric | JointSoftComp | SoftComp Raw Output |
 |---|---:|---:|
-| 真值 CIF MSE | 0.000542 ± 0.000063 | 0.004072 ± 0.000164 |
+| MSE against True CIF | 0.000542 ± 0.000063 | 0.004072 ± 0.000164 |
 | Brier | 0.031838 ± 0.000166 | 0.035335 ± 0.000283 |
-| 纯训练秒数 | 15.944778 ± 0.150950 | 22.377884 ± 0.118279 |
-| 预测秒数 | 0.190542 ± 0.000618 | 0.010351 ± 0.001208 |
+| Training Time (s) | 15.944778 ± 0.150950 | 22.377884 ± 0.118279 |
+| Prediction Time (s) | 0.190542 ± 0.000618 | 0.010351 ± 0.001208 |
 
-MSE 和 Brier 越小越好。Brier 使用完整模拟测试事件，在人、风险类别和等距时间点上平均，不是原项目 IPCW IBS。训练耗时包含 fit()，不含启动、数据生成、评估或存盘。
+Lower MSE and Brier scores are better. Brier uses complete simulated test events and is averaged over subjects, causes, and equally spaced time points; it is not the original IPCW IBS. Training time includes fit() but excludes startup, data generation, evaluation, and saving outputs.
 
-整个比较脚本耗时 116.95 秒（不含最初 Python/PyTorch 导入与后续报告生成）。
+The complete comparison script took 116.95 seconds, excluding initial Python/PyTorch imports and subsequent report generation.
 
-JointSoftComp 平均 MSE 降低 86.7%，Brier 降低 9.9%；配对 MSE 胜出 3/3 次，Brier 胜出 3/3 次。
+JointSoftComp reduced mean MSE by 86.7%, and Brier by 9.9%; paired MSE wins: 3/3; paired Brier wins: 3/3.
 
-解析真值预测的测试 Brier 为 0.031404；完整训练事件的经验边际参考 Brier 为 0.037034。这个边际参考使用删失训练者的潜在真实事件，仅为模拟诊断参照。
+The test Brier score of the analytic true-risk predictions was 0.031404; the empirical marginal reference using complete training events scored 0.037034. This marginal reference uses latent true events for censored training subjects and serves only as a simulation diagnostic.
 
-## 每次结果
+## Per-Run Results
 
-| seed | 模型 | MSE | Brier | 训练秒 | 有下降 CIF 的测试人数 |
+| seed | Model | MSE | Brier | Training Time (s) | Test Subjects with Decreasing CIFs |
 |---|---|---:|---:|---:|---:|
 | 0 | JointSoftComp | 0.000609 | 0.032030 | 15.86 | 0/1000 |
 | 0 | SoftComp_raw | 0.004227 | 0.035656 | 22.34 | 1000/1000 |
@@ -39,14 +39,14 @@ JointSoftComp 平均 MSE 降低 86.7%，Brier 降低 9.9%；配对 MSE 胜出 3/
 | 2 | JointSoftComp | 0.000485 | 0.031758 | 16.12 | 0/1000 |
 | 2 | SoftComp_raw | 0.003900 | 0.035230 | 22.28 | 999/1000 |
 
-## 解释范围
+## Scope of Interpretation
 
-- 这比较的是当前模型的上述配置，尤其 SoftComp 缺少原实验后处理，不能当作完整论文方法的最终优劣结论。
-- 只有 3 个训练重复和一个固定测试集；标准差仅反映训练样本及模型随机性，未涵盖更换测试集或数据分布的影响。
-- 检查仅覆盖 0–18 的指定时间网格，不声称更晚时域同样准确。
-- 原完整实验入口仍因缺失 evaluation 和基线模型/第三方依赖而不可直接运行。
+- This compares the models under the configurations above. In particular, SoftComp lacks the original experiment postprocessing, so the comparison does not establish the final relative performance of the complete manuscript methods.
+- There are only 3 training repetitions and one fixed test set. Standard deviations reflect training-sample and model randomness, not changes in the test set or data distribution.
+- Checks cover only the specified 0–18 time grid and do not establish accuracy at later times.
+- At the time of this run, the original full experiment entry points could not run directly because evaluation code, baseline models, or third-party dependencies were missing.
 
-## 复现
+## Reproduction
 
 ```sh
 cd /Users/kevin/Projects/competing_risks
@@ -54,4 +54,4 @@ cd /Users/kevin/Projects/competing_risks
 .venv/bin/python local_validation/case2_comparison_5000/summarize.py
 ```
 
-复跑会覆盖同目录结果。results.json 保存原始指标，summary.json 保存汇总，每个 .pt 文件保存权重、逐 epoch 损失及测试预测。
+Rerunning overwrites results in the same directory. results.json stores raw metrics, summary.json stores aggregates, and each .pt file stores weights, per-epoch losses, and test predictions.

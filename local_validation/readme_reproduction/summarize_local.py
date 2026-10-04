@@ -35,42 +35,42 @@ def main():
         r=json.loads(p.read_text())
         if r['command']!='aj-check':groups[r['command'],r['rho'],r['method']].append(r['result']['metrics'])
     report=[
-        '# README 本地复现实验记录', '',
-        '原文：`experiments/joint_softcomp/README.md`，由 IMG_0144.MOV 逐行转录。原文中的结果表是此前服务器上的结果，不是此次 Mac 的实测结果。', '',
-        '本次按原文允许的方式设 REPS=2，保留样本量、1000 epochs、模型超参数和后处理。实验一/三通过原模块的 main() 启动，替代内部 Buck 构建；最多并行两个进程。实验二单进程、单线程，与一/三并行运行。CPU 执行。', '',
-        f'验证：82 个实验一/三任务、24 个实验二任务全部退出码为 0；106 份 JSON 均可读取，浮点值均有限。实验一/三墙钟耗时 {(manifest["finished"]-manifest["started"])/60:.2f} 分钟，实验二 {(paired["finished"]-paired["started"])/60:.2f} 分钟（两批重叠，不能相加）。', '',
-        '## 执行范围与差异', '',
-        '- 实验一：3 个 β；SoftComp M=0/1/2/4/8；JointSoftComp M=1/2/4/8；Cox、真实模型、无协变量、总体极小值参考。训练 200、测试 50000，每组 2 次。',
-        '- 实验三：ρ=0/0.2/0.5/0.8；case3、constant、depcens（ρ=0 不重复）；两模型各 2 次。训练 5000、测试 1000、τ=20、100 个评估点。另跑了 8 个无协变量 AJ 检验（训练 10000）和理论积分表。',
-        '- 实验二：Case II/III × 有删失/无删失 × JointSoftComp/SoftComp/SoftComp-noaug × 2 次，训练 4500、验证 500、测试 1000。NeuralFG 源码缺失，未运行。',
-        '- 实验二的独立启动器在内存中略过不可用基线的 import，只调度已有 SoftComp spec；数据生成、训练、预测、后处理和指标函数都来自原代码。没有伪造或替代缺失模型，原文件未修改。',
-        '- README 写评估时间网格取事件时间 97.5% 分位数并加入固定时刻；已转录的 Case II prepare_data 调用的是默认 90% 的 build_evaluation_time_grid；Case III 已使用 97.5% 分位数并加入固定时刻。本次保留代码行为，因此实验二不是原文表格的严格复现。需补充对应版本的 prepare_data/grid 代码。',
-        '- README 称有删失时 C_td 和 IBS 用 IPCW；当前 compute_ctd 实现是未加 IPCW 的 Antolini 可比较对计数，compute_ibs 才使用训练集删失 KM 权重。保留原文与源代码，没有擅自改指标。',
-        '- 原始 tests/test_joint_softcomp.py 尚未提供，未执行 README 的原版单元测试。',
-        '- 两次重复只用于初步验证，不能代替 README 的 200/10/5 次完整统计实验。', '',
-        '## 实验一', '', (HERE/'simple_summary.txt').read_text(), '',
-        '## 实验二：已具备源码的三个模型', '', (HERE/'uncensored_available_summary.txt').read_text(), '',
-        '## 实验三', '',
-        '| 检验 | ρ | 模型 | n | MSE × 1000 | C_td | IBS |',
+        '# Local README Reproduction Report', '',
+        'Source: `experiments/joint_softcomp/README.md`, transcribed line by line from IMG_0144.MOV. The original result tables came from earlier server runs, rather than measurements from this Mac run.', '',
+        'This run used REPS=2 as allowed by the source, retaining sample sizes, 1000 epochs, model hyperparameters, and postprocessing. Experiments I/III called main() in the original modules instead of using the internal Buck build, with at most two concurrent processes. Experiment II ran as one single-threaded process alongside I/III. All computation used the CPU.', '',
+        f'Validation: all 82 Experiment I/III tasks and 24 Experiment II tasks exited with code 0. All 106 JSON files were readable and contained finite floating-point values. Experiment I/III wall time was {(manifest["finished"]-manifest["started"])/60:.2f} minutes; Experiment II took {(paired["finished"]-paired["started"])/60:.2f} minutes. The batches overlapped, so these durations cannot be added.', '',
+        '## Execution Scope and Differences', '',
+        '- Experiment I: 3 β values; SoftComp M=0/1/2/4/8; JointSoftComp M=1/2/4/8; Cox, true-model, no-covariate, and population-minimizer references. Training n=200, test n=50000, and 2 repetitions per setting.',
+        '- Experiment III: ρ=0/0.2/0.5/0.8; case3, constant, and depcens (without rerunning depcens at ρ=0); 2 repetitions for each model. Training n=5000, test n=1000, τ=20, and 100 evaluation points. Also ran 8 no-covariate AJ checks with training n=10000 and the theoretical integration table.',
+        '- Experiment II: Case II/III × censored/uncensored × JointSoftComp/SoftComp/SoftComp-noaug × 2 repetitions; fitting n=4500, validation n=500, and test n=1000. NeuralFG was not run because its source was missing.',
+        '- The standalone Experiment II launcher skipped unavailable baseline imports in memory and scheduled only existing SoftComp specs. Data generation, training, prediction, postprocessing, and metrics used the original code. Missing models were neither fabricated nor substituted, and original files were unchanged.',
+        '- The README specifies an evaluation grid through the 97.5% event-time quantile with fixed times added. The transcribed Case II prepare_data calls build_evaluation_time_grid with its default 90%, while Case III already uses 97.5% and fixed times. This run retained source behavior, so Experiment II is not an exact reproduction of the original table. The matching prepare_data/grid implementation was still needed.',
+        '- The README states that censored-data C_td and IBS use IPCW. The compute_ctd implementation counts Antolini comparable pairs without IPCW; only compute_ibs uses training-set censoring KM weights. The source text and code were retained without changing metric definitions.',
+        '- The original tests/test_joint_softcomp.py had not yet been supplied, so the original unit tests specified in the README were not run.',
+        '- Two repetitions serve only as preliminary validation and do not replace the full 200/10/5-repetition statistical experiments specified in the README.', '',
+        '## Experiment I', '', (HERE/'simple_summary.txt').read_text(), '',
+        '## Experiment II: Three Models with Available Source', '', (HERE/'uncensored_available_summary.txt').read_text(), '',
+        '## Experiment III', '',
+        '| Test | ρ | Model | n | MSE × 1000 | C_td | IBS |',
         '|---|---:|---|---:|---:|---:|---:|',
     ]
     for (kind,rho,method),runs in sorted(groups.items()):
         assert len(runs)==2
         values=[statistics.mean(r[k] for r in runs) for k in ('MSE_overall','Ctd_overall','IBS_overall')]
         report.append(f'| {kind} | {rho:.0%} | {method} | {len(runs)} | {values[0]*1000:.3f} | {values[1]:.4f} | {values[2]:.4f} |')
-    report += ['', '完整 AJ 误差、偏差和删失比例见 `censoring_summary.txt`；理论积分表见 `population_targets.txt`。', '',
-        '## 旧 Case II 权重复评', '',
-        '没有重新训练；补上 SoftComp PAV/simplex，使用有删失测试数据和恢复的原始指标。旧权重使用全部 5000 人训练、固定测试种子 140000、模型种子 0/1/2，与实验二协议不同。', '',
-        '| 模型 | MSE × 1000 | C_td | IPCW IBS |', '|---|---:|---:|---:|']
+    report += ['', 'See `censoring_summary.txt` for complete AJ errors, biases, and censoring fractions, and `population_targets.txt` for the theoretical integration table.', '',
+        '## Reevaluation of Saved Case II Weights', '',
+        'No retraining was performed. SoftComp PAV/simplex postprocessing was added, with censored test data and recovered original metrics. The saved weights used all 5000 training subjects, fixed test seed 140000, and model seeds 0/1/2, differing from the Experiment II protocol.', '',
+        '| Model | MSE × 1000 | C_td | IPCW IBS |', '|---|---:|---:|---:|']
     old=json.loads((HERE/'saved_case2_metrics.json').read_text())
     for m,v in old['means'].items():report.append(f'| {m} | {v["MSE_overall"]*1000:.3f} | {v["Ctd_overall"]:.4f} | {v["IBS_overall"]:.4f} |')
-    report += ['', '## 仍需补充', '',
-        '- `baseline_models/neural_fine_gray.py`：完成实验二的 NeuralFG。',
-        '- `baseline_models/dsm.py`、`baseline_models/fine_gray.py`：解除原入口集中 import 的源码缺口。',
-        '- `tests/test_joint_softcomp.py`：运行原版测试。',
-        '- 与 README 97.5% 网格一致版本的 `experiments/case2_v4/run.py` 的 `prepare_data` 及相关网格函数。',
-        '- 原项目依赖清单：确认库版本与原服务器一致。', '',
-        '可复查记录：`manifest.json`、`uncensored_manifest.json` 保留调用命令、耗时和启动时源文件 SHA-256；`logs/` 保留每个任务的日志。', '']
+    report += ['', '## Outstanding Items at the Time of This Run', '',
+        '- `baseline_models/neural_fine_gray.py`: complete NeuralFG in Experiment II.',
+        '- `baseline_models/dsm.py`, `baseline_models/fine_gray.py`: supply missing source required by the original entry-point imports.',
+        '- `tests/test_joint_softcomp.py`: run the original tests.',
+        '- A version of prepare_data in `experiments/case2_v4/run.py` and related grid functions matching the README 97.5% grid.',
+        '- The original project dependency list, to confirm library versions against the original server.', '',
+        'Audit records: `manifest.json` and `uncensored_manifest.json` retain commands, timings, and source SHA-256 hashes at startup; `logs/` retains per-task logs.', '']
     (HERE/'REPORT.md').write_text('\n'.join(report))
     (HERE/'audit.json').write_text(json.dumps(dict(json_files=len(paths),all_tasks_success=True,all_floats_finite=True,final_source_sha256={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'evaluation').glob('*.py')}),indent=2))
     print('Wrote REPORT.md; 106 JSON files validated')
