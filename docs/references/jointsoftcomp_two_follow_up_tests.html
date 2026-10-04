@@ -435,11 +435,11 @@ details.repro li { margin: 0.35rem 0; }
 <main class="page">
 <header class="hero">
     <div class="seal" aria-hidden="true">Two<br>tests</div>
-    <div class="kicker ani d1">Research note · Response to Thomas's two follow-up comments · 2026-10-01</div>
+    <div class="kicker ani d1">Research note · Uncensored control and fixed-horizon censoring experiments · 2026-10-01</div>
     <h1 class="ani d2">JointSoftComp: two follow-up tests<span>Uncensored control · Censoring levels relative to a fixed horizon</span></h1>
     <p class="lede ani d3">The new model (formerly “Option A”) is named <b>JointSoftComp</b>, after the <i>joint survival super learner</i> of Munch &amp; Gerds (2026). This page first gives its model and loss, then the setup, results, and conclusions of the two tests.</p>
     <div class="verdicts ani d4">
-        <div class="verdict"><span class="vtag">TEST 1</span>The performance gain persists without censoring. After debiasing the loss as Thomas suggested (that is, JointSoftComp), the gain does not disappear; it grows.</div>
+        <div class="verdict"><span class="vtag">TEST 1</span>In these simulations, JointSoftComp retains its performance advantage without censoring and improves on manuscript SoftComp in MSE and IBS.</div>
         <div class="verdict"><span class="vtag">TEST 2</span>With the censoring percentage defined relative to a fixed τ and ρ=0 included, the loss of SoftComp (manuscript) is biased already at ρ=0 and gets worse as ρ grows, while JointSoftComp is approximately unbiased for ρ ≤ 50%.</div>
     </div>
     <div class="metrics ani d5">
@@ -620,17 +620,13 @@ S(s_j)&amp;=S(s_{j-1})\left(1-\sum_{k}\Delta\Lambda_k(s_j)\right).
 </div>
 <div class="sec-head"><span class="sec-no">02</span><h2>Test 1: uncensored control</h2></div>
 <div class="card quote-card" data-animate="fade-up">
-<p><span class="card-title">Thomas's first comment</span></p>
-<blockquote>
-<p>“could you check if the performance boost is present in uncensored data too? if it vanishes there, I would guess that debiasing the loss functions from the censoring dependence will also remove the performance boost in censored data.”</p>
-</blockquote>
-<p>He is asking two things:</p>
+<p><span class="card-title">Research questions</span></p>
 <ol type="1">
-<li><strong>The literal question</strong>: is SoftComp's performance gain still there on data without censoring?</li>
-<li><strong>The inference behind it</strong>: if the gain vanishes without censoring, it comes from the censoring dependence of the loss; debiasing the loss would then remove the gain on censored data as well.</li>
+<li>Does the performance advantage persist when censoring is removed?</li>
+<li>How does replacing the manuscript loss with the observed-state loss affect performance under censored and uncensored conditions?</li>
 </ol>
-<p>“Performance gain” can mean SoftComp's advantage over the other methods, or the gain from time augmentation (which the manuscript credits with “dramatically improving discrimination”). Both readings are tested below.</p>
-<p><span class="pen">The “debiasing” he refers to is exactly what JointSoftComp does</span></p>
+<p>The comparisons evaluate both the advantage over baseline methods and the effect of time augmentation in manuscript SoftComp.</p>
+<p><span class="pen">JointSoftComp uses observed-state classification to address the censoring dependence of the manuscript loss.</span></p>
 </div>
 <div class="card" data-animate="fade-up">
 <p><span class="card-title">Setup</span></p>
@@ -691,22 +687,20 @@ S(s_j)&amp;=S(s_{j-1})\left(1-\sum_{k}\Delta\Lambda_k(s_j)\right).
 <div class="card" data-animate="fade-up">
 <p><span class="card-title">Analysis</span></p>
 <ol type="1">
-<li><strong>The gain persists without censoring.</strong> On uncensored data JointSoftComp is best in MSE and IBS (MSE: Case II 1.65 vs. 2.98 for NeuralFG; Case III 0.82 vs. 2.17) and best or tied for best in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mtext mathvariant="normal">td</mtext></msup><annotation encoding="application/x-tex">C^{\text{td}}</annotation></semantics></math>. Its advantage does not depend on censoring.</li>
-<li><strong>Thomas's inference is directly refuted.</strong> JointSoftComp is exactly the debiased version he suggested. Under censoring, its MSE is about 1/4 (Case II: 2.10 vs. 8.20) and 1/3 (Case III: 1.13 vs. 3.20) of that of SoftComp (manuscript), its IBS is better, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mtext mathvariant="normal">td</mtext></msup><annotation encoding="application/x-tex">C^{\text{td}}</annotation></semantics></math> is essentially unchanged; in Case III, SoftComp (manuscript) is 0.006 higher. Debiasing did not remove the gain; it increased it.</li>
-<li><strong>SoftComp (manuscript) does depend on censoring.</strong> Removing censoring makes its MSE worse (Case II: 8.20 → 15.10; Case III: 3.20 → 4.30), while every other method stays the same or improves. This confirms Thomas's concern about its loss.</li>
-<li><strong>The gain from time augmentation is even larger without censoring, but this reveals a flaw of the loss of SoftComp (manuscript).</strong> Without censoring, Eq. (5) gives cause labels only at event times and never an “at risk” label; its population target is the hazard share <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>λ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lambda_k(t)/\lambda(t)</annotation></semantics></math>, with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>S</mi><mo>*</mo></msup><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S^{\ast}\equiv0</annotation></semantics></math>. Augmentation is then the only source of “at risk” information (without it, the MSE is 65.2 / 61.1): a patch on a loss that does not target the CIF.</li>
+<li><strong>The gain persists without censoring.</strong> On uncensored data JointSoftComp is best in MSE and IBS (MSE: Case II 1.65 vs. 2.98 for NeuralFG; Case III 0.82 vs. 2.17) and best or tied for best in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mtext mathvariant="normal">td</mtext></msup><annotation encoding="application/x-tex">C^{\text{td}}</annotation></semantics></math>. Its MSE and IBS advantage persists in the uncensored settings evaluated here.</li>
+<li><strong>The observed-state loss retains the performance advantage in these simulations.</strong> JointSoftComp replaces the manuscript loss with an observed-state classification loss. Under censoring, its MSE is about 1/4 (Case II: 2.10 vs. 8.20) and 1/3 (Case III: 1.13 vs. 3.20) of that of SoftComp (manuscript), its IBS is better, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mtext mathvariant="normal">td</mtext></msup><annotation encoding="application/x-tex">C^{\text{td}}</annotation></semantics></math> is essentially unchanged; in Case III, SoftComp (manuscript) is 0.006 higher. The observed-state formulation improves MSE and IBS relative to manuscript SoftComp in these settings.</li>
+<li><strong>SoftComp (manuscript) does depend on censoring.</strong> Removing censoring makes its MSE worse (Case II: 8.20 → 15.10; Case III: 3.20 → 4.30), while every other method stays the same or improves. This pattern is consistent with the censoring dependence of the manuscript loss.</li>
+<li><strong>The gain from time augmentation is even larger without censoring, consistent with the population target of the SoftComp (manuscript) loss.</strong> Without censoring, Eq. (5) gives cause labels only at event times and never an “at risk” label; its population target is the hazard share <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>λ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lambda_k(t)/\lambda(t)</annotation></semantics></math>, with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>S</mi><mo>*</mo></msup><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S^{\ast}\equiv0</annotation></semantics></math>. Augmentation is then the only source of “at risk” information (without it, the MSE is 65.2 / 61.1): an additional source of survival labels for a loss whose population target differs from the CIF.</li>
 </ol>
 <div class="answer">
-<p><strong>Short answer</strong>: the gain is still there on uncensored data, and debiasing the loss as suggested does not remove it; it makes it larger.</p>
+<p><strong>Summary</strong>: in these simulations, JointSoftComp retains its performance advantage on uncensored data and improves MSE and IBS relative to manuscript SoftComp.</p>
 </div>
 </div>
 <div class="sec-head"><span class="sec-no">03</span><h2>Test 2: censoring levels relative to a fixed horizon</h2></div>
 <div class="card quote-card" data-animate="fade-up">
-<p><span class="card-title">Thomas's second comment</span></p>
-<blockquote>
-<p>“For the unit tests I would recommend to fix a maximum time horizon, say τ=5 years, and then to vary the censoring percentage relative to this fixed time horizon. it is ambiguous to say that there were ρ=20% censored without saying until what time. I would also recommend to include the uncensored case ρ=0%.”</p>
-</blockquote>
-<p>Saying “ρ=20% censored” without stating up to which time is ambiguous. Instead, fix a maximum horizon τ, define the censoring percentage relative to τ, vary it with τ held fixed, and include the uncensored case ρ=0%. This is also the setting of Munch &amp; Gerds' framework, in which everything is defined on a fixed prediction horizon <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>τ</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,\tau]</annotation></semantics></math>.</p>
+<p><span class="card-title">Research question</span></p>
+<p>How do prediction error and bias change as the censoring fraction varies over a fixed time horizon, including the uncensored case?</p>
+<p>The experiment fixes a maximum horizon τ, defines the censoring percentage relative to τ, varies it with τ held fixed, and includes the uncensored case ρ=0%. This is also the setting of Munch &amp; Gerds' framework, in which everything is defined on a fixed prediction horizon <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>τ</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,\tau]</annotation></semantics></math>.</p>
 </div>
 <div class="card" data-animate="fade-up">
 <p><span class="card-title">Defining the censoring percentage: old vs. new</span></p>
@@ -781,7 +775,7 @@ S(s_j)&amp;=S(s_{j-1})\left(1-\sum_{k}\Delta\Lambda_k(s_j)\right).
 <li><strong>At ρ=80% the error is mainly a lack of information.</strong> Only 0%–0.3% of the training subjects are still under observation at τ, so there are almost no data near τ. JointSoftComp's error also increases noticeably, but its MSE is still 3–5 times smaller than that of SoftComp (manuscript); in the no-covariate check, the maximum error of the nonparametric AJ estimate itself rises from 0.007 to 0.036. This is a limit of identifiability, not a bias of the loss (Munch &amp; Gerds also assume that <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">G(\tau\mid x)</annotation></semantics></math> is bounded away from 0).</li>
 </ol>
 <div class="answer">
-<p><strong>Short answer</strong>: the censoring percentage is now defined relative to a fixed τ, and ρ=0 is included. The loss of SoftComp (manuscript) is biased already at ρ=0 and drifts with ρ; JointSoftComp is approximately unbiased for ρ ≤ 50%, and its error at ρ=80% comes mainly from the lack of information near τ.</p>
+<p><strong>Summary</strong>: the censoring percentage is now defined relative to a fixed τ, and ρ=0 is included. The loss of SoftComp (manuscript) is biased already at ρ=0 and drifts with ρ; JointSoftComp is approximately unbiased for ρ ≤ 50%, and its error at ρ=80% comes mainly from the lack of information near τ.</p>
 </div>
 </div>
 

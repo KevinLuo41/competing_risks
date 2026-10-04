@@ -594,10 +594,10 @@ h2 { font-weight: 700; font-size: 1.7rem; }
 
 <main class="container">
 <header class="hero">
-    <div class="kicker ani d1">Research note · Response to Thomas's comments on the loss</div>
+    <div class="kicker ani d1">Research note · Population targets of the training loss</div>
     <h1 class="ani d2">SoftComp's training loss depends on the censoring distribution<span>Option A: treat censoring as one more softmax state</span></h1>
     <p class="tldr ani d3">None of the three current training terms targets the CIF at the population level, and all of them shift with the censoring distribution <span class="m"><i>G</i></span>. Option A adds censoring as an extra class, so every subject has an observed label at every time point. The training target then no longer depends on <span class="m"><i>G</i></span>, and the CIF is recovered through the Aalen–Johansen identity.</p>
-    <div class="pen ani d4">Not a wording issue: the estimation target itself is off</div>
+    <div class="pen ani d4">The population target of the current loss differs from the CIF</div>
 </header>
 <div class="sec-head"><span class="sec-no">01</span><h2>Current algorithm and loss</h2></div>
 <div class="card is-visible" data-animate="fade-up">
