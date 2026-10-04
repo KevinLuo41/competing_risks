@@ -2,7 +2,7 @@
 
 Source: `experiments/joint_softcomp/README.md`, transcribed line by line from IMG_0144.MOV. The original result tables came from earlier server runs, rather than measurements from this Mac run.
 
-This run used REPS=2 as allowed by the source, retaining sample sizes, 1000 epochs, model hyperparameters, and postprocessing. Experiments I/III called main() in the original modules instead of using the internal Buck build, with at most two concurrent processes. Experiment II ran as one single-threaded process alongside I/III. All computation used the CPU.
+This run used REPS=2 as allowed by the source, retaining sample sizes, 1000 epochs, model hyperparameters, and postprocessing. Experiments I/III called main() in the original modules through direct Python execution, with at most two concurrent processes. Experiment II ran as one single-threaded process alongside I/III. All computation used the CPU.
 
 Validation: all 82 Experiment I/III tasks and 24 Experiment II tasks exited with code 0. All 106 JSON files were readable and contained finite floating-point values. Experiment I/III wall time was 13.39 minutes; Experiment II took 7.49 minutes. The batches overlapped, so these durations cannot be added.
 

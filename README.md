@@ -81,7 +81,7 @@ cif, survival = model.predict_cif_survival_grid(X_test, times)
 
 ### 2.2 Background Documents
 
-The original Meta internal pages are saved as HTML files. Download them from the repository and open them in a browser:
+The background documents are saved as HTML files. Download them from the repository and open them in a browser:
 
 - [SoftComp: censoring dependence of the current loss, and Option A](docs/references/softcomp_censoring_dependence_option_a.html)
 - [JointSoftComp: two follow-up tests](docs/references/jointsoftcomp_two_follow_up_tests.html)

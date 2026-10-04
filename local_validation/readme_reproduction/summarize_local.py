@@ -37,7 +37,7 @@ def main():
     report=[
         '# Local README Reproduction Report', '',
         'Source: `experiments/joint_softcomp/README.md`, transcribed line by line from IMG_0144.MOV. The original result tables came from earlier server runs, rather than measurements from this Mac run.', '',
-        'This run used REPS=2 as allowed by the source, retaining sample sizes, 1000 epochs, model hyperparameters, and postprocessing. Experiments I/III called main() in the original modules instead of using the internal Buck build, with at most two concurrent processes. Experiment II ran as one single-threaded process alongside I/III. All computation used the CPU.', '',
+        'This run used REPS=2 as allowed by the source, retaining sample sizes, 1000 epochs, model hyperparameters, and postprocessing. Experiments I/III called main() in the original modules through direct Python execution, with at most two concurrent processes. Experiment II ran as one single-threaded process alongside I/III. All computation used the CPU.', '',
         f'Validation: all 82 Experiment I/III tasks and 24 Experiment II tasks exited with code 0. All 106 JSON files were readable and contained finite floating-point values. Experiment I/III wall time was {(manifest["finished"]-manifest["started"])/60:.2f} minutes; Experiment II took {(paired["finished"]-paired["started"])/60:.2f} minutes. The batches overlapped, so these durations cannot be added.', '',
         '## Execution Scope and Differences', '',
         '- Experiment I: 3 β values; SoftComp M=0/1/2/4/8; JointSoftComp M=1/2/4/8; Cox, true-model, no-covariate, and population-minimizer references. Training n=200, test n=50000, and 2 repetitions per setting.',

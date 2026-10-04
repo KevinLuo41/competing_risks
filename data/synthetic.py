@@ -35,7 +35,7 @@ def load_data(
     import pandas as pd
 
     # Use importlib.resources so the CSV is reachable both from on-disk source
-    # and from inside packaged binaries (e.g. buck @mode/opt par).
+    # and from inside packaged binaries.
     with (files(__package__).joinpath("synthetic_comprisk.csv")).open("rb") as f:
         df = pd.read_csv(f)
     df = df.drop(columns=["true_time", "true_label"]).rename(

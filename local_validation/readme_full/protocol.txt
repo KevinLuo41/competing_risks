@@ -5,11 +5,11 @@ Scope: experiment I 200 repetitions for each beta and method/M; experiment II
 experiment III 5 seeds for each simulation cell, plus 8 AJ checks and theory.
 Sample sizes and epoch budgets are unchanged. NeuralFG uses the source's
 validation early stopping. Six simultaneous workers total, one Torch thread each.
-The README's internal Buck launch is replaced with imports of the same main().
+The README launch commands use the same main() functions through Python.
 The installed environment is recorded in requirements.lock.txt.
 
 Changes and interpretation:
-- Internal later.unittest.TestCase imports replaced with standard unittest.TestCase.
+- Original test-framework imports replaced with standard unittest.TestCase.
   No assertions removed. Initial full discovery: 102 tests pass; two modules fail
   import because experiments/case1_v3 is absent. Those modules are outside the
   three supplementary README experiments. Two new reproduction tests pass.
