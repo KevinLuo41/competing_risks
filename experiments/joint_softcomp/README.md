@@ -46,9 +46,9 @@ python -m unittest competing_risks.tests.test_joint_softcomp
 在 `competing_risks/` 根目录运行，后续命令也使用同一个 shell：
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install torch numpy pandas scipy scikit-learn matplotlib lifelines
+python -m pip install -r requirements.txt
 export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
 
 simple() {

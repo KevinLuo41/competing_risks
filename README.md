@@ -25,6 +25,7 @@ reference, not as evidence that those experiments have completed locally.
 competing_risks/
 ├── .gitignore
 ├── README.md
+├── requirements.txt
 ├── baseline_models/
 │   ├── __init__.py
 │   ├── cs_cox.py
@@ -63,6 +64,11 @@ competing_risks/
 │   │   └── run.py
 │   ├── case1_v2/
 │   │   ├── __init__.py
+│   │   └── run.py
+│   ├── case1_v3/
+│   │   ├── __init__.py
+│   │   ├── formal.py
+│   │   ├── plot_cif_uncertainty.py
 │   │   └── run.py
 │   ├── case2/
 │   │   └── run.py
@@ -124,28 +130,36 @@ competing_risks/
 The tree omits generated outputs, `.venv/`, `__pycache__/`, and the contents of
 `tests/` and `local_validation/`. PBC/Framingham loaders and experiment folders,
 `data/synthetic_comprisk.csv`, paper figures, and standalone experiment-plan
-documents have not yet been copied into this checkout. `experiments/case1_v3/`
-is also missing, although its data generator and tests are present.
+documents have not yet been copied into this checkout.
 
 ## Running
 
 ### Local setup
 
-Use Python 3.12 (the version used by the local validation environment). From the
+Use Python 3.12 (the version used by the local validation environment).
+Start with a fresh clone (or run `git pull` in an existing checkout). From the
 `competing_risks/` project root, create and activate a virtual environment, install
-the runtime dependencies, and make the parent directory importable:
+the pinned runtime dependencies, and make the parent directory importable:
 
 ```bash
-python3 -m venv .venv
+git clone https://github.com/KevinLuo41/competing_risks.git
+cd competing_risks
+python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install torch numpy pandas scipy scikit-learn matplotlib lifelines
+python -m pip install -r requirements.txt
 export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
+
+# Check the environment and run the complete unit test suite
+python -m pip check
+python -m unittest discover -s tests -t .. -v
 ```
 
 Run the remaining commands from this directory in the same shell. The source
 uses relative imports, so use the full `competing_risks` package name. The parent
 path lets Python load this directory as a namespace package; an editable install
-is not required. There is currently no root `requirements.txt` or `pyproject.toml`.
+is not required. `requirements.txt` pins the seven direct runtime dependencies
+used by the validated Python 3.12 environment. No external datasets are needed
+for the unit tests or the simulated Case I/II/III experiments.
 
 ### Run an experiment
 
@@ -217,10 +231,8 @@ hardware.
 python -m unittest competing_risks.tests.test_joint_softcomp
 ```
 
-Full test discovery (`python -m unittest discover -s tests -t ..`) currently has
-two import errors: `test_case1_v3_formal.py` and `test_case1_v3_softcomp.py` depend
-on the missing `experiments/case1_v3/` modules. Restore those files before using
-the full-suite command.
+Run the complete suite with `python -m unittest discover -s tests -t .. -v`.
+The current suite contains 116 tests, including the restored Case I v3 modules.
 
 See [JointSoftComp: model, loss, and supplementary experiments](experiments/joint_softcomp/README.md)
 for its local setup and experiment commands.
