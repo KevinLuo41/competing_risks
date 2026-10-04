@@ -9,7 +9,52 @@
 显示值接近不表示并列或差异显著。真实模型及总体极小值是参照，不参与拟合模型排名；
 有符号偏差只作为诊断，不排名。
 
-## 1. 模型和 loss
+## 1. 本地运行环境
+
+先安装 Git 和 Miniconda（或 Anaconda），然后在终端依次执行以下命令。
+以下步骤适用于 macOS / Linux；所有实验命令都从项目根目录运行。
+
+### 1.1 下载项目
+
+```bash
+git clone https://github.com/KevinLuo41/competing_risks.git
+cd competing_risks
+```
+
+### 1.2 创建并激活 Conda 环境
+
+```bash
+conda create -n competing-risks python=3.12 pip -y
+conda activate competing-risks
+```
+
+如果 `conda activate` 提示 shell 尚未初始化，运行 `conda init`，重新打开终端，
+再进入 `competing_risks/` 并运行 `conda activate competing-risks`。
+
+### 1.3 安装依赖并设置导入路径
+
+```bash
+python -m pip install -r requirements.txt
+export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
+```
+
+项目通过 `competing_risks` 包名使用相对导入，因此需要把项目的父目录加入
+`PYTHONPATH`。后续 Quick Start 使用同一个终端；重新打开终端后，先激活
+Conda 环境、进入项目根目录，再执行上面的 `export`。
+Full Experiments 的 Bash 脚本会自动设置导入路径。
+依赖安装版本固定在 `requirements.txt`；完整运行环境见[依赖锁](local_validation/readme_full/requirements.lock.txt)。
+
+### 1.4 验证安装
+
+```bash
+python -m unittest competing_risks.tests.test_joint_softcomp
+```
+
+看到 `Ran 5 tests` 和 `OK` 即表示安装验证通过。测试会检查观测标签、
+Aalen–Johansen 的 CIF 还原、预测单调性与概率和为 1，以及短训练的有限 loss。
+无需下载额外数据。
+
+## 2. 模型和 loss
 
 - **思路**: 按 Munch & Gerds (2026) 的 joint survival super learner，把删失当作一个独立状态。这样每个样本在任何时刻 t 的观测状态 η(t) ∈ {在险, 原因 1..K, 删失} 都已知。
 - **模型**: 沿用 SoftComp 的残差前馈网络（输入 [x; t]），输出 K + 1 个 logit，补上固定为 0 的在险 logit 后做 (K + 2) 类 softmax，得到观测状态概率。
@@ -18,7 +63,7 @@
 - **默认配置**: 宽 32，1 个残差块，每人 4 个时刻，学习率 1e-3、weight decay 1e-3、batch 256、1000 epochs；六个数据集共用。
 - **对照：论文版 SoftComp**: (K + 1) 类 softmax 直接输出 (S, F_1, …, F_K)。Loss 为式 (5)（观测时刻上的交叉熵）加 time augmentation（每人从 Unif(0, Y_i) 抽 M 个时刻标为存活，权重 0.5；论文默认 M = 2），预测后做 PAV 和 simplex 后处理。它的总体目标依赖删失分布和 M，不是 CIF。
 
-### 1.1 代码
+### 2.1 代码
 
 | 文件 | 类 / 函数 | 作用 |
 |---|---|---|
@@ -30,7 +75,7 @@
 | `evaluation/survival.py`（原有） | `evaluate_cif_metrics` | C_td (Antolini) 和 IPCW IBS |
 | `evaluation/simulation.py`（原有） | `compute_mse_accuracy` | 对真实 CIF 的 MSE |
 
-先完成第 2 节的本地环境设置，再运行以下示例（`p`、`K` 和数据张量由调用者提供）：
+先完成第 1 节的本地环境设置，再运行以下示例（`p`、`K` 和数据张量由调用者提供）：
 
 ```python
 from competing_risks.crsoft_model.joint_softcomp import JointSoftComp
@@ -40,45 +85,14 @@ model.fit(X, Y, Delta)  # 默认配置训练
 cif, survival = model.predict_cif_survival_grid(X_test, times)
 ```
 
-单元测试（`tests/test_joint_softcomp.py`：标签构造；固定 τ = 20、ρ = 0/20%/50%/80% 时 AJ 还原真 CIF；预测单调且和为 1；训练时刻来自事件时间；训练 loss 有限）：
+### 2.2 背景文档
 
-```bash
-python -m unittest competing_risks.tests.test_joint_softcomp
-```
+原 Meta 内部页面已保存为 HTML，可以从仓库下载后用浏览器打开：
 
-## 2. 本地运行环境
+- [SoftComp: censoring dependence of the current loss, and Option A](docs/references/softcomp_censoring_dependence_option_a.html)
+- [JointSoftComp: two follow-up tests](docs/references/jointsoftcomp_two_follow_up_tests.html)
 
-在 `competing_risks/` 根目录运行，后续命令也使用同一个 shell：
-
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
-
-simple() {
-  python -c 'from competing_risks.experiments.joint_softcomp.simple import main; main()' "$@"
-}
-uncensored() {
-  python -c 'from competing_risks.experiments.joint_softcomp.uncensored import main; main()' "$@"
-}
-censoring() {
-  python -c 'from competing_risks.experiments.joint_softcomp.censoring_levels import main; main()' "$@"
-}
-
-# 查看参数，不训练
-simple --help
-uncensored --help
-censoring --help
-```
-
-这三个实验文件定义了 `main()`，目前没有 `if __name__ == "__main__"` 入口，
-所以上面的 shell 函数显式调用 `main()` 并传入参数。其余汇总脚本可以直接用
-`python -m` 运行。模型和训练逻辑沿用现有源码。
-
-每个实验用 `REPS` 控制重复次数。以下循环按顺序运行，适合本地直接执行；
-先调小 `REPS` 检查流程，再运行完整重复次数。本次任务使用 CPU、每任务一个
-Torch 线程；本地环境版本见[完整依赖锁](local_validation/readme_full/requirements.lock.txt)。
+HTML 保留原文中的历史结果；下面的表格报告本地复现实验结果。
 
 ## 3. 实验一：最简单设定（单预测变量、无删失）
 
@@ -102,26 +116,32 @@ Torch 线程；本地环境版本见[完整依赖锁](local_validation/readme_fu
 | 运行入口 | `simple.py` 的 `main` | 一次运行一个 (β, 方法, M)，输出 `simple_b{β}_{方法}_m{M}_r{起始重复}.json`；`reference` 输出 Cox、真实模型、无协变量模型和各 M 的总体极小值 |
 | 输出结果 | `experiments/joint_softcomp/analyze_simple.py` | 合并各段重复，按 β 输出 Brier、AUC、IPA、MSE 的表 |
 
-### 3.3 运行代码
+### 3.3 Quick Start
+
+运行两次 reference 重复，检查数据生成、参考模型评估和 JSON 输出：
 
 ```bash
-OUT=/tmp/joint_softcomp/simple
-REPS=200  # 首次检查可改成 1 或 2
-for b in 0 0.4054651081 0.6931471806; do
-  simple reference --beta "$b" --m 0 --reps "$REPS" --threads 1 --out-dir "$OUT"
-  for m in 0 1 2 4 8; do
-    simple softcomp --beta "$b" --m "$m" --reps "$REPS" --threads 1 --out-dir "$OUT"
-  done
-  for m in 1 2 4 8; do
-    simple joint --beta "$b" --m "$m" --reps "$REPS" --threads 1 --out-dir "$OUT"
-  done
-done
-python -m competing_risks.experiments.joint_softcomp.analyze_simple "$OUT"
+python -m competing_risks.experiments.joint_softcomp.simple \
+    reference \
+    --beta 0 \
+    --m 0 \
+    --reps 2 \
+    --out-dir /tmp/joint_softcomp
 ```
 
-`--rep-start` 可以把重复拆成几段并行跑（例如每段 `--reps 50`）；汇总脚本会自动合并。
+输出为 `/tmp/joint_softcomp/simple_b0.0000_reference_m0_r0.json`。
 
-### 3.4 实验结果
+### 3.4 Full Experiments
+
+```bash
+bash scripts/run_joint_softcomp.sh
+```
+
+脚本运行三个 β、SoftComp 的五个 M、JointSoftComp 的四个 M，以及参考模型；
+每组 200 次重复，最后自动汇总。结果写入 `/tmp/joint_softcomp/full/simple/`，
+汇总保存在 `summary.txt`。完整循环见[脚本](scripts/run_joint_softcomp.sh)。
+
+### 3.5 实验结果
 
 以下三张表按 β 分组，展示所有拟合模型配置及真实模型参照。
 每个拟合配置均有 200 次重复，测试集固定为 50,000 人。
@@ -187,7 +207,7 @@ SoftComp loss 总体极小值的 Brier（数值计算，不是训练结果）：
 | 4 | 0.2414 | 0.2343 | 0.2202 |
 | 8 | 0.2730 | 0.2699 | 0.2609 |
 
-### 3.5 分析
+### 3.6 分析
 
 - **Brier 最佳方法随设定变化。** β=0 时无协变量模型最好（0.2406）；β 非零时 Cox 最好（0.2288 / 0.2064）。JointSoftComp 默认 M=4 为 0.2432 / 0.2306 / 0.2082；β=0 时 SoftComp M=4 的 0.2419 更低，不能说 JointSoftComp 在所有设定都优于 SoftComp。
 - **SoftComp 对 augmentation 数量敏感。** M=0 时 Brier 为 0.6034 / 0.5916 / 0.5749；M=4 时降至 0.2419 / 0.2349 / 0.2219，再增加到 M=8 会回升。JointSoftComp 的 M=1/2/4/8 是 loss 的采样时刻数，Brier 在每个 β 下相差不到 0.0003。
@@ -219,23 +239,35 @@ SoftComp loss 总体极小值的 Brier（数值计算，不是训练结果）：
 | 运行入口 | `uncensored.py` 的 `run`、`main` | 一次运行一个 (case, 方法, 重复, 条件)，输出 `case{c}_rep{r}_{方法}.json` |
 | 输出结果 | `experiments/joint_softcomp/analyze_uncensored.py` | 配对两种条件下的同一批重复，输出 MSE、C_td、IBS 的表 |
 
-### 4.3 运行代码
+### 4.3 Quick Start
+
+先运行 Case II 的一个无删失 JointSoftComp 重复：
 
 ```bash
-OUT=/tmp/joint_softcomp/uncensored
-REPS=10  # 首次检查可改成 1 或 2
-for r in $(seq 0 $((REPS - 1))); do
-  for c in 2 3; do
-    for m in JointSoftComp SoftComp SoftComp-noaug NeuralFG; do
-      uncensored --case "$c" --method "$m" --replicate "$r" --threads 1 --out-dir "$OUT/censored"
-      uncensored --case "$c" --method "$m" --replicate "$r" --threads 1 --out-dir "$OUT/uncensored" --uncensored
-    done
-  done
-done
-python -m competing_risks.experiments.joint_softcomp.analyze_uncensored "$OUT/censored" "$OUT/uncensored" "$REPS"
+python -m competing_risks.experiments.joint_softcomp.uncensored \
+    --case 2 \
+    --method JointSoftComp \
+    --replicate 0 \
+    --uncensored \
+    --threads 1 \
+    --out-dir /tmp/joint_softcomp/quick_uncensored
 ```
 
-### 4.4 实验结果
+输出为 `/tmp/joint_softcomp/quick_uncensored/case2_rep00_JointSoftComp.json`。
+此命令使用完整的默认训练配置，只运行一个 Case / 方法 / 条件。
+
+### 4.4 Full Experiments
+
+```bash
+bash scripts/run_joint_softcomp_uncensored.sh
+```
+
+脚本运行 Case II / III、四种方法和有删失 / 无删失两种条件，每组 10 次配对重复，
+最后自动汇总。结果写入 `/tmp/joint_softcomp/full/uncensored/` 的 `censored/`
+和 `uncensored/` 子目录，汇总保存在 `summary.txt`。
+完整循环见[脚本](scripts/run_joint_softcomp_uncensored.sh)。
+
+### 4.5 实验结果
 
 每组 10 次配对重复，均值（样本标准差）。**MSE 数值乘以 1,000**。
 粗体分别在同一个 Case 和删失条件内选择最佳指标。
@@ -251,7 +283,7 @@ python -m competing_risks.experiments.joint_softcomp.analyze_uncensored "$OUT/ce
 | III v5 | SoftComp-noaug | 9.22 (0.60) | 0.6825 (0.0078) | 0.1288 (0.0022) | 61.14 (2.38) | 0.6690 (0.0057) | 0.1618 (0.0015) |
 | III v5 | NeuralFG | 3.44 (0.50) | 0.6528 (0.0122) | 0.1266 (0.0024) | 2.24 (0.25) | 0.6607 (0.0067) | 0.1235 (0.0022) |
 
-### 4.5 分析
+### 4.6 分析
 
 - **JointSoftComp 在四个 Case/条件中都取得最低 MSE 和 IBS。** 有删失时它的 MSE 为 2.28 / 1.12，而 SoftComp 为 8.12 / 3.20。
 - **C_td 的最佳方法因 Case 而异。** Case II 两种条件都由 JointSoftComp 取得最高均值；Case III 两种条件都由 SoftComp 取得最高均值。无删失 Case III 原先三位小数都显示 0.678，四位小数可看出 0.6782 对 0.6776，不能标成并列第一。
@@ -291,28 +323,37 @@ Case II 固定时刻也未提供，故这些数字是本地测量值，不声称
 | 输出结果 | `censoring_levels.py` 的 `summarize` 子命令 | 按 (检验, ρ, 方法) 汇总的表 |
 | 理论表 | `experiments/joint_softcomp/population_targets.py`（只用标准库） | `censoring_rate`、`loss_targets`、`aalen_johansen_from_observed`、`print_table` |
 
-### 5.3 运行代码
+### 5.3 Quick Start
+
+用两个 epochs 检查固定 hazard、50% 删失下的训练和评估流程：
 
 ```bash
-OUT=/tmp/joint_softcomp/censoring
-REPS=5  # 首次检查可改成 1 或 2
-for rho in 0 0.2 0.5 0.8; do
-  for m in softcomp joint; do
-    censoring aj-check --method "$m" --rho "$rho" --seed 0 --n-train 10000 --threads 1 --out-dir "$OUT"
-    for s in $(seq 0 $((REPS - 1))); do
-      censoring case3 --method "$m" --rho "$rho" --seed "$s" --threads 1 --out-dir "$OUT"
-      censoring constant --method "$m" --rho "$rho" --seed "$s" --threads 1 --out-dir "$OUT"
-      if [ "$rho" != 0 ]; then
-        censoring depcens --method "$m" --rho "$rho" --seed "$s" --threads 1 --out-dir "$OUT"
-      fi
-    done
-  done
-done
-censoring summarize --out-dir "$OUT"
-python -m competing_risks.experiments.joint_softcomp.population_targets
+python -m competing_risks.experiments.joint_softcomp.censoring_levels \
+    constant \
+    --method joint \
+    --rho 0.5 \
+    --seed 0 \
+    --epochs 2 \
+    --threads 1 \
+    --out-dir /tmp/joint_softcomp/quick_censoring
 ```
 
-### 5.4 实验结果
+输出为 `/tmp/joint_softcomp/quick_censoring/constant_rho0.5_joint_seed0.json`。
+两轮训练只用于检查流程；下面的完整实验使用默认 1,000 epochs。
+
+### 5.4 Full Experiments
+
+```bash
+bash scripts/run_joint_softcomp_censoring.sh
+```
+
+脚本运行四个删失水平、两种方法、Case III / 常数 hazard / 协变量依赖删失设定，
+每组 5 次重复；另外运行无协变量 AJ 检查、结果汇总和理论表。
+结果写入 `/tmp/joint_softcomp/full/censoring/`，汇总保存在 `summary.txt`，
+理论表保存在 `population_targets.txt`。
+完整循环见[脚本](scripts/run_joint_softcomp_censoring.sh)。
+
+### 5.5 实验结果
 
 **理论表**：原因 1 的总体极小值（真实 F₁：t = 5 时 0.352，t = 20 时 0.633）。
 
@@ -360,7 +401,7 @@ python -m competing_risks.experiments.joint_softcomp.population_targets
 | 50% | 0.1507 | 0.0206 | **0.0092** |
 | 80% | 0.1878 | 0.0748 | **0.0359** |
 
-### 5.5 分析
+### 5.6 分析
 
 - **JointSoftComp 在全部 11 个设定中 MSE 和 IBS 都更低。** Case III 独立删失时，ρ=0/20%/50%/80% 的 MSE 为 1.01 / 1.20 / 1.73 / 6.07，而 SoftComp 为 5.97 / 7.00 / 11.05 / 25.83。
 - **C_td 并非总由 JointSoftComp 领先。** 常数 hazard 的 ρ=20%/50%/80% 都是 SoftComp 的均值更高；协变量依赖删失的 ρ=80% 则是 JointSoftComp 的 0.6681 高于 SoftComp 的 0.5938。

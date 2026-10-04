@@ -318,3 +318,7 @@ def main() -> None:
     }
     (args.out_dir / name).write_text(json.dumps(payload))
     logger.info("wrote %s", args.out_dir / name)
+
+
+if __name__ == "__main__":
+    main()

@@ -144,3 +144,7 @@ def main() -> None:
     path = args.out_dir / f"case{args.case}_rep{args.replicate:02d}_{args.method}.json"
     path.write_text(json.dumps(payload))
     logger.info("wrote %s", path)
+
+
+if __name__ == "__main__":
+    main()

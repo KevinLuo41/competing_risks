@@ -231,3 +231,7 @@ def main() -> None:
     name = f"simple_b{args.beta:.4f}_{args.method}_m{args.m}_r{args.rep_start}.json"
     (args.out_dir / name).write_text(json.dumps(payload))
     logger.info("wrote %s", args.out_dir / name)
+
+
+if __name__ == "__main__":
+    main()

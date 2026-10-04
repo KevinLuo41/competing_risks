@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--<base target="_blank">--><base href="." target="_blank">
+<title>SoftComp: censoring dependence of the current loss, and Option A</title>
+<style>
+:root {
+    --bg: #f6f3ea;
+    --bg-alt: #eee9dc;
+    --surface: #fffdf7;
+    --surface-hover: #f3efe3;
+    --border: #ddd5c3;
+    --border-strong: #c9bea6;
+    --text-primary: #1b2433;
+    --text-secondary: #4a5568;
+    --text-muted: #7b8494;
+    --ink: #1d3557;
+    --ink-soft: #3d5a80;
+    --red: #c8423c;
+    --red-soft: rgba(200, 66, 60, 0.09);
+    --green: #1f8a70;
+    --green-soft: rgba(31, 138, 112, 0.10);
+    --amber: #d98e04;
+    --lab0: #7d8fb0;
+    --grid: rgba(29, 53, 87, 0.055);
+    --grid-strong: rgba(29, 53, 87, 0.12);
+    --hatch: rgba(29, 53, 87, 0.16);
+    --primary: #1d3557;
+    --font-body: 'Noto Sans SC', sans-serif;
+    --font-math: 'STIX Two Text', 'Noto Serif SC', serif;
+}
+body.dark-mode {
+    --bg: #0e1320;
+    --bg-alt: #151c2e;
+    --surface: #141b2b;
+    --surface-hover: #1b2438;
+    --border: #283248;
+    --border-strong: #3a4763;
+    --text-primary: #e7eaf1;
+    --text-secondary: #aab3c5;
+    --text-muted: #7c869b;
+    --ink: #a9c3f2;
+    --ink-soft: #86a4da;
+    --red: #ff8f85;
+    --red-soft: rgba(255, 143, 133, 0.11);
+    --green: #62d2b3;
+    --green-soft: rgba(98, 210, 179, 0.11);
+    --amber: #f0b44c;
+    --lab0: #6d80a6;
+    --grid: rgba(169, 195, 242, 0.045);
+    --grid-strong: rgba(169, 195, 242, 0.10);
+    --hatch: rgba(169, 195, 242, 0.16);
+    --primary: #86a4da;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(ellipse at 15% 0%, var(--green-soft), transparent 45%),
+        radial-gradient(ellipse at 100% 30%, var(--red-soft), transparent 40%),
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: auto, auto, 24px 24px, 24px 24px;
+    line-height: 1.8;
+    font-size: 16px;
+    transition: background-color 0.3s, color 0.3s;
+}
+.container {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 2rem 3.4rem;
+    position: relative;
+}
+.container::before {
+    content: "";
+    position: absolute;
+    left: 1.7rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--red);
+    opacity: 0.22;
+}
+
+/* ---------- math ---------- */
+.m, .eq { font-family: var(--font-math); }
+.m i, .eq i { font-style: italic; }
+.eq {
+    display: block;
+    text-align: center;
+    font-size: 1.2rem;
+    margin: 0.9rem 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0.2rem 0;
+}
+.frac {
+    display: inline-flex;
+    flex-direction: column;
+    vertical-align: middle;
+    text-align: center;
+    margin: 0 0.15em;
+    line-height: 1.35;
+}
+.frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 0.3em 0.08em; }
+.frac > span:last-child { padding: 0.08em 0.3em 0; }
+.cases {
+    display: inline-flex;
+    flex-direction: column;
+    text-align: left;
+    border-left: 2px solid currentColor;
+    padding-left: 0.6em;
+    margin-left: 0.25em;
+    vertical-align: middle;
+    line-height: 1.55;
+    font-size: 0.92em;
+}
+sub, sup { font-size: 0.72em; }
+
+/* ---------- hero ---------- */
+.hero { margin-bottom: 3.2rem; }
+.kicker {
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    font-weight: 500;
+}
+h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 4.6vw, 3.05rem);
+    line-height: 1.25;
+    margin: 0.5rem 0 1.1rem;
+    color: var(--ink);
+}
+h1 span { display: block; font-weight: 600; font-size: 0.62em; color: var(--green); margin-top: 0.35rem; }
+.tldr {
+    font-size: 1.06rem;
+    color: var(--text-secondary);
+    max-width: 780px;
+    margin: 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--ink);
+}
+.pen {
+    font-family: 'Long Cang', cursive;
+    color: var(--red);
+    font-size: 1.55rem;
+    line-height: 1.2;
+    display: inline-block;
+    transform: rotate(-2deg);
+}
+.hero .pen { margin-top: 1rem; }
+
+/* ---------- sections ---------- */
+.sec { margin: 3.4rem 0; }
+.sec-head { display: flex; align-items: baseline; gap: 0.9rem; margin-bottom: 1.1rem; }
+.sec-no {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--red);
+    border: 1.5px solid var(--red);
+    border-radius: 50%;
+    width: 2.1rem;
+    height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transform: translateY(-0.2rem);
+}
+h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 900;
+    font-size: 1.65rem;
+    margin: 0;
+    color: var(--ink);
+}
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.3rem 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 1px 0 var(--border), 0 10px 30px -18px rgba(29, 53, 87, 0.25);
+}
+.card-title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+    font-size: 1.08rem;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+}
+.card p { margin: 0.4rem 0; }
+.muted { color: var(--text-muted); font-size: 0.86rem; }
+code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: var(--bg-alt);
+    padding: 0.08em 0.4em;
+    border-radius: 4px;
+}
+
+/* ---------- loss cards ---------- */
+.loss {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    position: relative;
+    border-left: 4px solid var(--red);
+}
+.loss .row { display: grid; grid-template-columns: 84px 1fr; align-items: center; gap: 0.8rem; }
+.loss .lab {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+}
+.loss .row .eq { text-align: left; margin: 0.35rem 0; font-size: 1.12rem; }
+.loss .learn .eq { color: var(--red); }
+.loss .pen { font-size: 1.3rem; margin-top: 0.2rem; }
+.tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+.tag.red { color: var(--red); background: var(--red-soft); }
+.tag.green { color: var(--green); background: var(--green-soft); }
+
+/* ---------- chart ---------- */
+.fig-cap { font-size: 0.86rem; color: var(--text-secondary); margin-top: 0.4rem; }
+.fig-cap b { color: var(--ink); }
+#chart { width: 100%; height: auto; display: block; }
+.c-grid { stroke: var(--grid-strong); stroke-width: 1; }
+.c-axis { stroke: var(--border-strong); stroke-width: 1.2; }
+.c-tick { fill: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+.c-axlab { fill: var(--text-secondary); font-size: 13px; font-family: var(--font-math); font-style: italic; }
+.c-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.c-true { stroke: var(--ink); stroke-width: 3.4; }
+.c-r20 { stroke: var(--red); stroke-width: 2.2; stroke-dasharray: 1.5 6; opacity: 0.8; }
+.c-r50 { stroke: var(--red); stroke-width: 2.8; }
+.c-r80 { stroke: var(--red); stroke-width: 2.2; stroke-dasharray: 9 6; opacity: 0.8; }
+.c-lab { font-size: 13px; font-family: var(--font-body); }
+.c-lab-true { fill: var(--ink); font-weight: 700; }
+.c-lab-red { fill: var(--red); }
+.c-pen { fill: var(--red); font-family: 'Long Cang', cursive; font-size: 21px; }
+.evidence { margin: 0.8rem 0 0; padding-left: 1.2rem; }
+.evidence li { margin: 0.35rem 0; }
+
+/* ---------- timelines ---------- */
+.tl-fig { display: grid; grid-template-columns: 78px 1fr; gap: 1.2rem 1rem; align-items: center; margin-top: 0.6rem; }
+.scheme-tag {
+    font-weight: 700;
+    font-size: 0.86rem;
+    padding: 0.35rem 0.4rem;
+    border-radius: 8px;
+    text-align: center;
+}
+.scheme-tag.now { color: var(--red); background: var(--red-soft); }
+.scheme-tag.new { color: var(--green); background: var(--green-soft); }
+.subjects { display: flex; flex-direction: column; gap: 0.9rem; }
+.subj { display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 0.7rem; }
+.subj-name { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
+.track { position: relative; height: 46px; }
+.track .axis { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--border-strong); }
+.track .end {
+    position: absolute;
+    top: calc(50% + 9px);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: var(--font-math);
+    font-style: italic;
+}
+.ymark { position: absolute; top: 3px; bottom: 3px; width: 0; border-left: 2px dashed var(--ink-soft); }
+.ymark span {
+    position: absolute;
+    top: calc(50% + 7px);
+    left: 4px;
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    font-family: var(--font-math);
+    font-style: italic;
+    white-space: nowrap;
+}
+.dead {
+    position: absolute;
+    right: 0;
+    top: 28%;
+    bottom: 28%;
+    background: repeating-linear-gradient(45deg, transparent 0 5px, var(--hatch) 5px 7px);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+.dead span { background: var(--surface); padding: 0 0.35rem; border-radius: 3px; }
+.dot {
+    position: absolute;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    margin-left: -11px;
+    margin-top: -11px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #fff;
+    font-family: var(--font-math);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.dot.l0 { background: var(--lab0); }
+.dot.l1 { background: var(--amber); }
+.dot.lc { background: var(--green); }
+.dot.bad { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--red); }
+.pen-note {
+    position: absolute;
+    font-family: 'Long Cang', cursive;
+    color: var(--red);
+    font-size: 1.05rem;
+    white-space: nowrap;
+    top: -12px;
+}
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.3rem; margin-top: 1.1rem; font-size: 0.8rem; color: var(--text-secondary); }
+.legend .dot { position: static; margin: 0 0.35rem 0 0; display: inline-flex; width: 18px; height: 18px; font-size: 0.62rem; vertical-align: middle; }
+
+/* ---------- table ---------- */
+table.cmp { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+table.cmp th, table.cmp td { padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; text-align: left; }
+table.cmp th { font-family: 'Noto Serif SC', serif; font-weight: 600; font-size: 0.92rem; }
+table.cmp th.now { color: var(--red); }
+table.cmp th.new { color: var(--green); }
+table.cmp td:first-child { color: var(--text-muted); white-space: nowrap; font-size: 0.82rem; }
+table.cmp tr:hover td { background: var(--surface-hover); }
+
+.changes { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+.changes li { margin: 0.3rem 0; }
+.next {
+    border: 1.5px dashed var(--green);
+    background: var(--green-soft);
+    border-radius: 12px;
+    padding: 1rem 1.3rem;
+    margin-top: 1.4rem;
+}
+.next b { color: var(--green); }
+
+.foot {
+    margin-top: 3.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+.foot a { color: var(--text-muted); }
+
+/* ---------- entrance ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.ani { opacity: 0; animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.15s; } .d3 { animation-delay: 0.25s; } .d4 { animation-delay: 0.4s; }
+
+@media (max-width: 640px) {
+    .container { padding-left: 2.4rem; }
+    .container::before { left: 1rem; }
+    .subj { grid-template-columns: 1fr; gap: 0.1rem; }
+    .tl-fig { grid-template-columns: 1fr; }
+    .loss .row { grid-template-columns: 1fr; gap: 0; }
+}
+</style>
+<style>
+/* === INFRASTRUCTURE STYLES — customize colors via CSS custom properties === */
+
+.viz-menu {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10000;
+    font-family: inherit;
+}
+
+.viz-menu-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border, #e2e8f0);
+    background: var(--surface, #fff);
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.viz-menu-toggle:hover {
+    background: var(--surface-hover, #f8fafc);
+    border-color: var(--border-strong, #cbd5e1);
+    transform: scale(1.05);
+}
+
+.viz-menu-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 200px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+    pointer-events: none;
+    transition: opacity 0.15s, transform 0.15s;
+}
+.viz-menu.open .viz-menu-panel {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.viz-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-primary, #0f172a);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s;
+    font-family: inherit;
+}
+.viz-menu-item:hover {
+    background: var(--surface-hover, #f1f5f9);
+}
+
+.viz-menu-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* === Scroll-triggered reveal animations === */
+[data-animate] {
+    opacity: 0;
+    transition-property: opacity, transform, filter;
+    transition-duration: 0.6s;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-animate="fade-up"] { transform: translateY(20px); }
+[data-animate="fade-down"] { transform: translateY(-20px); }
+[data-animate="fade-left"] { transform: translateX(-20px); }
+[data-animate="fade-right"] { transform: translateX(20px); }
+[data-animate="scale-up"] { transform: scale(0.95); }
+[data-animate="blur-in"] { filter: blur(8px); }
+
+[data-animate].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+}
+
+/* Print styles */
+@media print {
+    .viz-menu { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .dark-mode { all: unset; }
+    .card, .section, section { break-inside: avoid; }
+    .animate-in { opacity: 1 !important; animation: none !important; }
+    [data-animate] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+    @page { margin: 1.5cm; }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    [data-animate] {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        transition: none !important;
+    }
+}
+</style>
+<style>
+/* Pandoc output: native MathML + markdown elements */
+math {
+    font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', 'Noto Sans Math', math;
+    font-size: 1.07em;
+}
+span.math.display {
+    display: block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: center;
+    margin: 0.7rem 0;
+    padding: 0.35rem 0;
+}
+span.math.display math { font-size: 1.12em; }
+.card h4.card-title {
+    margin: 0 0 0.45rem;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+.card p { margin: 0.5rem 0; }
+.card ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+.card li { margin: 0.35rem 0; }
+.loss { display: block; }
+.loss .pen { font-size: 1.3rem; margin-top: 0.3rem; }
+.sec-head { margin-top: 3.6rem; }
+.hero + .sec-head { margin-top: 0; }
+.fig-cap p { margin: 0.4rem 0 0; }
+.next p { margin: 0; }
+.muted { display: block; margin-top: 0.6rem; }
+.card table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 0.3rem; }
+.card th, .card td { padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; text-align: left; }
+.card th { font-family: 'Noto Serif SC', serif; font-weight: 600; }
+.card thead th:nth-child(2) { color: var(--red); }
+.card thead th:nth-child(3) { color: var(--green); }
+.card td:first-child { color: var(--text-muted); white-space: nowrap; font-size: 0.82rem; }
+.card tbody tr:hover td { background: var(--surface-hover); }
+span.card-title { display: block; margin-bottom: 0.1rem; line-height: 1.55; }
+.card > p:first-child { margin-top: 0; }
+/* English typography */
+:root { --font-body: 'Source Sans 3', sans-serif; --font-math: 'STIX Two Text', serif; }
+body { font-size: 17px; line-height: 1.68; }
+h1, h2, .card-title, .card th { font-family: 'Newsreader', serif; }
+h1 { font-weight: 700; font-size: clamp(1.9rem, 4.2vw, 2.75rem); letter-spacing: -0.01em; }
+h1 span { font-weight: 500; }
+h2 { font-weight: 700; font-size: 1.7rem; }
+.card-title { font-weight: 700; font-size: 1.16rem; }
+.kicker { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.74rem; font-weight: 600; }
+.pen, .pen-note { font-family: 'Caveat', cursive; }
+.pen { font-size: 1.6rem; }
+.loss .pen { font-size: 1.4rem; }
+.pen-note { font-size: 1.2rem; top: -14px; }
+.subj { grid-template-columns: 132px 1fr; }
+.scheme-tag { font-family: 'Newsreader', serif; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+<nav class="viz-menu" id="vizMenu" aria-label="Visualization controls">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="5" x2="15" y2="5"></line>
+            <line x1="3" y1="9" x2="15" y2="9"></line>
+            <line x1="3" y1="13" x2="15" y2="13"></line>
+        </svg>
+    </button>
+    <div class="viz-menu-panel" id="vizMenuPanel">
+        <button onclick="toggleTheme()" class="viz-menu-item">
+            <span class="viz-menu-icon" id="themeIcon">◐</span>
+            <span id="themeLabel">Dark mode</span>
+        </button>
+        <button onclick="window.print()" class="viz-menu-item">
+            <span class="viz-menu-icon">⎙</span>
+            <span>Print / Save as PDF</span>
+        </button>
+        <button onclick="toggleFullscreen()" class="viz-menu-item">
+            <span class="viz-menu-icon" id="fsIcon">⛶</span>
+            <span id="fsLabel">Fullscreen</span>
+        </button>
+        <hr style="border:none;border-top:1px solid var(--border,#e2e8f0);margin:2px 8px">
+        <button onclick="saveAsImage()" class="viz-menu-item" id="saveImgBtn">
+            <span class="viz-menu-icon">📷</span>
+            <span>Save as image</span>
+        </button>
+    </div>
+</nav>
+
+<main class="container">
+<header class="hero">
+    <div class="kicker ani d1">Internal note · Response to Thomas's comments on the loss</div>
+    <h1 class="ani d2">SoftComp's training loss depends on the censoring distribution<span>Option A: treat censoring as one more softmax state</span></h1>
+    <p class="tldr ani d3">None of the three current training terms targets the CIF at the population level, and all of them shift with the censoring distribution <span class="m"><i>G</i></span>. Option A adds censoring as an extra class, so every subject has an observed label at every time point. The training target then no longer depends on <span class="m"><i>G</i></span>, and the CIF is recovered through the Aalen–Johansen identity.</p>
+    <div class="pen ani d4">Not a wording issue: the estimation target itself is off</div>
+</header>
+<div class="sec-head"><span class="sec-no">01</span><h2>Current algorithm and loss</h2></div>
+<div class="card is-visible" data-animate="fade-up">
+<p><span class="card-title">Data and target</span></p>
+<p>We observe <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> independent samples</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><msub><mi>C</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><msub><mi>ϵ</mi><mi>i</mi></msub><mspace width="0.167em"></mspace><mi>𝟙</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>C</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\{(x_i,\,Y_i,\,\Delta_i)\}_{i=1}^{n},\qquad Y_i=\min(T_i,C_i),\qquad \Delta_i=\epsilon_i\,𝟙(T_i\le C_i)\in\{0,1,\dots,K\}.</annotation></semantics></math></p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta_i=0</annotation></semantics></math> denotes censoring and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">\Delta_i=k</annotation></semantics></math> an event of cause <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>; <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math> is assumed independent of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>. The targets are the cause-specific CIFs and the overall survival function:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>T</mi><mo>≤</mo><mi>t</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>ϵ</mi><mo>=</mo><mi>k</mi><mo>∣</mo><mi>X</mi><mo>=</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn><mo>−</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">F_k(t\mid x)=P(T\le t,\ \epsilon=k\mid X=x),\qquad S(t\mid x)=1-\sum_{k=1}^{K}F_k(t\mid x).</annotation></semantics></math></p>
+</div>
+<div class="card is-visible" data-animate="fade-up">
+<p><span class="card-title">Model: a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(K+1)</annotation></semantics></math>-class softmax at every time <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math></span></p>
+<p>Each cause gets a logit in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x,t)</annotation></semantics></math>, the log-odds of its CIF relative to survival:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mfrac><mrow><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>=</mo><msub><mi>μ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>K</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">\log\frac{F_k(t\mid x)}{S(t\mid x)}=\mu_k(x,t),\qquad k=1,\dots,K.</annotation></semantics></math></p>
+<p>Solving for <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>k</mi></msub><annotation encoding="application/x-tex">F_k</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math> gives a softmax over <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K+1</annotation></semantics></math> states (survival plus <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> causes) at each time <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, with the survival logit fixed at 0:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>e</mi><mrow><msub><mi>μ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mrow><mn>1</mn><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msup><mi>e</mi><mrow><msub><mi>μ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msup><mi>e</mi><mrow><msub><mi>μ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">F_k(t\mid x)=\frac{e^{\mu_k(x,t)}}{1+\sum_{j=1}^{K}e^{\mu_j(x,t)}},\qquad S(t\mid x)=\frac{1}{1+\sum_{j=1}^{K}e^{\mu_j(x,t)}}.</annotation></semantics></math></p>
+<p>Hence <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>F</mi><mi>k</mi></msub><mo>+</mo><mi>S</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\sum_k F_k+S=1</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>k</mi></msub><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F_k\ge0</annotation></semantics></math> hold automatically, but monotonicity of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>k</mi></msub><annotation encoding="application/x-tex">F_k</annotation></semantics></math> in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is <strong>not</strong> guaranteed. Below, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub><mo>=</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">\pi_0=S</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>k</mi></msub><mo>=</mo><msub><mi>F</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\pi_k=F_k</annotation></semantics></math>.</p>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Network: a residual feed-forward network with input <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>x</mi><mo>;</mo><mi>t</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[x;t]</annotation></semantics></math></span></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>h</mi><mn>0</mn></msub></mtd><mtd columnalign="left"><mo>=</mo><mstyle mathvariant="normal"><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>W</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">[</mo><mi>x</mi><mo>;</mo><mi>t</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo><msub><mi>b</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mi>d</mi></msup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>h</mi><mi>ℓ</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>h</mi><mrow><mi>ℓ</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>W</mi><mrow><mi>ℓ</mi><mo>,</mo><mn>2</mn></mrow></msub><mspace width="0.167em"></mspace><mstyle mathvariant="normal"><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>W</mi><mrow><mi>ℓ</mi><mo>,</mo><mn>1</mn></mrow></msub><msub><mi>h</mi><mrow><mi>ℓ</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>b</mi><mrow><mi>ℓ</mi><mo>,</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>b</mi><mrow><mi>ℓ</mi><mo>,</mo><mn>2</mn></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>ℓ</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>L</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>W</mi><mrow><mi>L</mi><mo>+</mo><mn>1</mn></mrow></msub><msub><mi>h</mi><mi>L</mi></msub><mo>+</mo><msub><mi>b</mi><mrow><mi>L</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mi>K</mi></msup><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+h_0&amp;=\mathrm{ReLU}\left(W_0[x;t]+b_0\right)\in\mathbb{R}^{d},\\
+h_\ell&amp;=h_{\ell-1}+W_{\ell,2}\,\mathrm{ReLU}\left(W_{\ell,1}h_{\ell-1}+b_{\ell,1}\right)+b_{\ell,2},\qquad \ell=1,\dots,L,\\
+\mu(x,t)&amp;=W_{L+1}h_L+b_{L+1}\in\mathbb{R}^{K}.
+\end{aligned}</annotation></semantics></math></p>
+<p>The experiments use <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>32</mn></mrow><annotation encoding="application/x-tex">d=32</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">L=1</annotation></semantics></math> (fewer than 3,000 parameters); time <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> enters on its raw scale (<code>CRSoftNet.forward</code>, <code>crsoft.py:488-494</code>).</p>
+</div>
+<div class="card loss" data-animate="fade-up">
+<p><span class="card-title">Loss ① · Eq. (5): <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(K+1)</annotation></semantics></math>-class cross-entropy at the observed time <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math></span></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℓ</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>−</mo><mo>log</mo><msub><mi>π</mi><msub><mi>Δ</mi><mi>i</mi></msub></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left"><mo>−</mo><mo>log</mo><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd><mtd columnalign="left"><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi><mo>≥</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left"><mo>−</mo><mo>log</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd><mtd columnalign="left"><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\ell_1(x_i,Y_i,\Delta_i)=-\log\pi_{\Delta_i}(Y_i\mid x_i)=\begin{cases}-\log F_k(Y_i\mid x_i), &amp; \Delta_i=k\ge1,\\ -\log S(Y_i\mid x_i), &amp; \Delta_i=0.\end{cases}</annotation></semantics></math></p>
+<p>The paper calls this the multinomial negative log-likelihood (<code>competing_risks_loss</code>, <code>crsoft.py:16-54</code>). For comparison, the actual censored-data likelihood is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mo>log</mo><msub><mi>L</mi><mi>i</mi></msub><mo>=</mo><mo>−</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><mi>𝟙</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>log</mo><msub><mi>f</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>𝟙</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>log</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>f</mi><mi>k</mi></msub><mo>=</mo><mfrac><mrow><mi>∂</mi><msub><mi>F</mi><mi>k</mi></msub></mrow><mrow><mi>∂</mi><mi>t</mi></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">-\log L_i=-\sum_{k=1}^{K}𝟙(\Delta_i=k)\log f_k(Y_i\mid x_i)-𝟙(\Delta_i=0)\log S(Y_i\mid x_i),\qquad f_k=\frac{\partial F_k}{\partial t}.</annotation></semantics></math></p>
+<p><span class="pen">The difference: events use the cumulative probability <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F_k(Y_i)</annotation></semantics></math>, not the density <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_k(Y_i)</annotation></semantics></math></span></p>
+</div>
+<div class="card loss" data-animate="fade-up">
+<p><span class="card-title">Loss ② · Time augmentation</span></p>
+<p>In every minibatch, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> times <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>M</mi></mrow></msub><mover><mo>∼</mo><mtext mathvariant="normal">iid</mtext></mover><mstyle mathvariant="normal"><mi>U</mi><mi>n</mi><mi>i</mi><mi>f</mi></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">t_{i1},\dots,t_{iM}\overset{\text{iid}}{\sim}\mathrm{Unif}(0,Y_i)</annotation></semantics></math> are redrawn for each sample. All of them are labeled as survival (0), each with weight <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><annotation encoding="application/x-tex">\lambda_{\text{aug}}</annotation></semantics></math> (written <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math> in the paper):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℒ</mi><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mfrac><mrow><msub><mi>ℓ</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mo>log</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow></mrow><mrow><mn>1</mn><mo>+</mo><mi>M</mi><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">ℒ=\frac{1}{n}\sum_{i=1}^{n}\frac{\ell_1(x_i,Y_i,\Delta_i)+\lambda_{\text{aug}}\sum_{j=1}^{M}\left[-\log S(t_{ij}\mid x_i)\right]}{1+M\lambda_{\text{aug}}}.</annotation></semantics></math></p>
+<p>Settings: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">M=2</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\lambda_{\text{aug}}=0.5</annotation></semantics></math> (Cases II/III, PBC, Framingham); <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">M=8</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\lambda_{\text{aug}}=0.5</annotation></semantics></math> (Synthetic). Case I uses no augmentation.</p>
+</div>
+<div class="card loss" data-animate="fade-up">
+<p><span class="card-title">Loss ③ · Eq. (6): auxiliary Brier term (PBC and Synthetic only)</span></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℒ</mi><mtext mathvariant="normal">Brier</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mi>M</mi><mi>′</mi><mi>K</mi></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>M</mi><mi>′</mi></mrow></munderover><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msup><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><msub><mi>′</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>𝟙</mi><mo stretchy="false" form="prefix">{</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>≤</mo><mi>t</mi><msub><mi>′</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi><mo stretchy="false" form="postfix">}</mo><mo stretchy="true" form="postfix">]</mo></mrow><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>t</mi><msub><mi>′</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>∼</mo><mstyle mathvariant="normal"><mi>U</mi><mi>n</mi><mi>i</mi><mi>f</mi></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>t</mi><mo>max</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">ℒ_{\text{Brier}}(x_i,Y_i,\Delta_i)=\frac{1}{M'K}\sum_{m=1}^{M'}\sum_{k=1}^{K}\left[F_k(t'_{im}\mid x_i)-𝟙\{Y_i\le t'_{im},\ \Delta_i=k\}\right]^2,\qquad t'_{im}\sim\mathrm{Unif}(0,t_{\max}),</annotation></semantics></math></p>
+<p>where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mo>max</mo></msub><mo>=</mo><msub><mo>max</mo><mi>i</mi></msub><msub><mi>Y</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">t_{\max}=\max_i Y_i</annotation></semantics></math>, with no IPCW weighting (<code>_brier_loss</code>, <code>crsoft.py:96-121</code>). The full training objective is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>min</mo><mi>θ</mi></munder><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>ℒ</mi><mo>+</mo><msub><mi>λ</mi><mi>B</mi></msub><mo>⋅</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>ℒ</mi><mtext mathvariant="normal">Brier</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\min_{\theta}\ \ ℒ+\lambda_B\cdot\frac{1}{n}\sum_{i=1}^{n}ℒ_{\text{Brier}}(x_i,Y_i,\Delta_i),</annotation></semantics></math></p>
+<p>with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>B</mi></msub><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\lambda_B=2</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>′</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">M'=10</annotation></semantics></math> for PBC; <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>B</mi></msub><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">\lambda_B=5</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>′</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">M'=5</annotation></semantics></math> for Synthetic; and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>B</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda_B=0</annotation></semantics></math> for all other datasets.</p>
+</div>
+<div class="sec-head"><span class="sec-no">02</span><h2>The problem: what these losses learn at the population level</h2></div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Population minimizers of the three training terms</span></p>
+<p>Let <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lambda_k(t\mid x)</annotation></semantics></math> be the cause-specific hazard, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>λ</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\lambda=\sum_k\lambda_k</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\lambda_c(t\mid x)</annotation></semantics></math> the censoring hazard, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>C</mi><mo>&gt;</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">G(t\mid x)=P(C&gt;t\mid x)</annotation></semantics></math>. When the network is flexible enough in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, each risk can be minimized pointwise in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x,t)</annotation></semantics></math> (Gibbs’ inequality / conditional expectation), which gives:</p>
+<p><strong>① Eq. (5)</strong> learns the probability of <em>which outcome is observed, given the observed time</em>. This contains the censoring hazard; without censoring, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S\equiv0</annotation></semantics></math>.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>π</mi><mi>k</mi><mo>*</mo></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><msub><mi>λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>λ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>λ</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Δ</mi><mo>=</mo><mi>k</mi><mo>∣</mo><mi>Y</mi><mo>=</mo><mi>t</mi><mo>,</mo><mspace width="0.167em"></mspace><mi>X</mi><mo>=</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_k^*(t\mid x)=\frac{\lambda_k(t\mid x)}{\lambda(t\mid x)+\lambda_c(t\mid x)}=P(\Delta=k\mid Y=t,\,X=x)</annotation></semantics></math></p>
+<p><strong>② Adding augmentation</strong> puts an extra “pseudo-hazard” in the denominator. It suppresses the early overestimation, but it also pulls the whole CIF down and depends on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><annotation encoding="application/x-tex">\lambda_{\text{aug}}</annotation></semantics></math>, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\lambda_c</annotation></semantics></math>.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>π</mi><mi>k</mi><mo>*</mo></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><msub><mi>λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>λ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>λ</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><mi>M</mi><mspace width="0.167em"></mspace><mstyle mathvariant="double-struck"><mi>𝔼</mi></mstyle><mrow><mo stretchy="true" form="prefix">[</mo><mn>1</mn><mi>/</mi><mi>Y</mi><mo>∣</mo><mi>Y</mi><mo>&gt;</mo><mi>t</mi><mo>,</mo><mspace width="0.167em"></mspace><mi>X</mi><mo>=</mo><mi>x</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">\pi_k^*(t\mid x)=\frac{\lambda_k(t\mid x)}{\lambda(t\mid x)+\lambda_c(t\mid x)+\lambda_{\text{aug}}M\,\mathbb{E}\left[1/Y\mid Y&gt;t,\,X=x\right]}</annotation></semantics></math></p>
+<p><strong>③ Eq. (6)</strong> learns the observed sub-distribution, which is biased downward, more so under heavier censoring.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>π</mi><mi>k</mi><mo>*</mo></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>≤</mo><mi>t</mi><mo>,</mo><mspace width="0.167em"></mspace><mi>Δ</mi><mo>=</mo><mi>k</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>t</mi></msubsup><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>d</mi><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.222em"></mspace><mo>≤</mo><mspace width="0.222em"></mspace><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_k^*(t\mid x)=P(Y\le t,\,\Delta=k\mid x)=\int_0^t G(s\mid x)\,dF_k(s\mid x)\ \le\ F_k(t\mid x)</annotation></semantics></math></p>
+<p><span class="pen">None of these is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F_k(t\mid x)</annotation></semantics></math>, and all of them change with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math></span></p>
+</div>
+<div class="sec-head"><span class="sec-no">03</span><h2>What Option A changes</h2></div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Idea <span class="tag green">Munch &amp; Gerds 2026</span></span></p>
+<p>Treat censoring as a state of its own. Then the <em>observed state</em> <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta_i(t)</annotation></semantics></math> of every subject is known at every time <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, and classifying this state with a softmax is a fully observed, strictly proper problem that does not require estimating <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>. The CIF is then recovered from the observed-state probabilities through the Aalen–Johansen identity. Manuscript III of Pham’s (2024) PhD thesis (Pham, Munch &amp; Gerds) follows the same idea of modeling censoring jointly as an extra cause.</p>
+</div>
+<div class="card" data-animate="fade-up">
+    <div class="card-title">The core change: which label is used at each time</div>
+    <div class="tl-fig">
+        <div class="scheme-tag now">Current</div>
+        <div class="subjects">
+            <div class="subj">
+                <div class="subj-name">Subject A<br>cause-1 event at <span class="m"><i>Y</i><sub><i>i</i></sub></span></div>
+                <div class="track">
+                    <div class="axis"></div>
+                    <div class="dead" style="left:62%"><span>no labels after <span class="m"><i>Y</i><sub><i>i</i></sub></span></span></div>
+                    <div class="ymark" style="left:62%"><span>Y<sub>i</sub></span></div>
+                    <div class="dot l0" style="left:12%">0</div>
+                    <div class="dot l0" style="left:29%">0</div>
+                    <div class="dot l0" style="left:46%">0</div>
+                    <div class="dot l1" style="left:62%">1</div>
+                    <span class="end" style="left:0">0</span>
+                </div>
+            </div>
+            <div class="subj">
+                <div class="subj-name">Subject B<br>censored at <span class="m"><i>Y</i><sub><i>i</i></sub></span></div>
+                <div class="track">
+                    <div class="axis"></div>
+                    <div class="dead" style="left:45%"><span>no labels after <span class="m"><i>Y</i><sub><i>i</i></sub></span></span></div>
+                    <div class="ymark" style="left:45%"><span>Y<sub>i</sub></span></div>
+                    <div class="dot l0" style="left:9%">0</div>
+                    <div class="dot l0" style="left:21%">0</div>
+                    <div class="dot l0" style="left:34%">0</div>
+                    <div class="dot l0 bad" style="left:45%">0</div>
+                    <span class="pen-note" style="left:calc(45% + 16px)">← censored, but labeled “survival”</span>
+                    <span class="end" style="left:0">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="scheme-tag new">Option A</div>
+        <div class="subjects">
+            <div class="subj">
+                <div class="subj-name">Subject A<br>cause-1 event at <span class="m"><i>Y</i><sub><i>i</i></sub></span></div>
+                <div class="track">
+                    <div class="axis"></div>
+                    <div class="ymark" style="left:62%"><span>Y<sub>i</sub></span></div>
+                    <div class="dot l0" style="left:8%">0</div>
+                    <div class="dot l0" style="left:22%">0</div>
+                    <div class="dot l0" style="left:36%">0</div>
+                    <div class="dot l0" style="left:51%">0</div>
+                    <div class="dot l1" style="left:67%">1</div>
+                    <div class="dot l1" style="left:81%">1</div>
+                    <div class="dot l1" style="left:94%">1</div>
+                    <span class="end" style="left:0">0</span><span class="end" style="right:0">τ</span>
+                </div>
+            </div>
+            <div class="subj">
+                <div class="subj-name">Subject B<br>censored at <span class="m"><i>Y</i><sub><i>i</i></sub></span></div>
+                <div class="track">
+                    <div class="axis"></div>
+                    <div class="ymark" style="left:45%"><span>Y<sub>i</sub></span></div>
+                    <div class="dot l0" style="left:8%">0</div>
+                    <div class="dot l0" style="left:22%">0</div>
+                    <div class="dot l0" style="left:36%">0</div>
+                    <div class="dot lc" style="left:51%">c</div>
+                    <div class="dot lc" style="left:67%">c</div>
+                    <div class="dot lc" style="left:81%">c</div>
+                    <div class="dot lc" style="left:94%">c</div>
+                    <span class="end" style="left:0">0</span><span class="end" style="right:0">τ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="legend">
+        <span><span class="dot l0">0</span>at risk (no event, uncensored)</span>
+        <span><span class="dot l1">1</span>observed event (1…<span class="m"><i>K</i></span>)</span>
+        <span><span class="dot lc">c</span>censored (new class)</span>
+    </div>
+    <div class="fig-cap"><b>Fig. 1</b> | The current scheme assigns labels only on <span class="m">(0, <i>Y</i><sub><i>i</i></sub>)</span> and at <span class="m"><i>Y</i><sub><i>i</i></sub></span>, and a censored subject is labeled “survival” at <span class="m"><i>Y</i><sub><i>i</i></sub></span>. Under Option A the times are drawn from a fixed distribution on <span class="m">[0, <i>τ</i>]</span>, independent of <span class="m"><i>Y</i><sub><i>i</i></sub></span>; after <span class="m"><i>Y</i><sub><i>i</i></sub></span> the label is 1…<span class="m"><i>K</i></span> or c, and every label is observed.</div>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Observed-state process: the new labels</span></p>
+<p>For each sample, define the observed-state process. It is fully determined by <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(Y_i,\Delta_i)</annotation></semantics></math>, and hence known for every <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>∈</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>τ</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">t\in[0,\tau]</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left"><mn>0</mn><mo>,</mo></mtd><mtd columnalign="left"><mi>t</mi><mo>&lt;</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>k</mi><mo>,</mo></mtd><mtd columnalign="left"><mi>t</mi><mo>≥</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi><mo>≥</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>c</mi><mo>,</mo></mtd><mtd columnalign="left"><mi>t</mi><mo>≥</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\eta_i(t)=\begin{cases}0, &amp; t&lt;Y_i,\\ k, &amp; t\ge Y_i,\ \Delta_i=k\ge1,\\ c, &amp; t\ge Y_i,\ \Delta_i=0.\end{cases}</annotation></semantics></math></p>
+<p>Here <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math> means at risk and uncensored, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> means an event of cause <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> has been observed, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math> means censored. The state probabilities are</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>&gt;</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>P</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>≤</mo><mi>t</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>Δ</mi><mo>=</mo><mi>k</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>P</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>≤</mo><mi>t</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>Δ</mi><mo>=</mo><mn>0</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">P_0(t\mid x)=P(Y&gt;t\mid x),\qquad P_k(t\mid x)=P(Y\le t,\ \Delta=k\mid x),\qquad P_c(t\mid x)=P(Y\le t,\ \Delta=0\mid x).</annotation></semantics></math></p>
+<p>Assuming censoring is conditionally independent given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">P_0(\tau\mid x)&gt;0</annotation></semantics></math>, they relate to the target <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>k</mi></msub><annotation encoding="application/x-tex">F_k</annotation></semantics></math> and the censoring distribution <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math> by (Munch &amp; Gerds, Eq. 7)</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>P</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>t</mi></msubsup><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>s</mi><mo>−</mo></msup><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>d</mi><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>P</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>−</mo><msubsup><mo>∫</mo><mn>0</mn><mi>t</mi></msubsup><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>d</mi><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">P_0(t\mid x)=S(t\mid x)\,G(t\mid x),\qquad P_k(t\mid x)=\int_0^t G(s^-\mid x)\,dF_k(s\mid x),\qquad P_c(t\mid x)=-\int_0^t S(s\mid x)\,dG(s\mid x).</annotation></semantics></math></p>
+<p>It does not matter that these quantities depend on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math> cancels when the CIF is recovered (see the AJ identity below).</p>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Model: a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(K+2)</annotation></semantics></math>-class softmax at every time <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math></span></p>
+<p>The network is identical to Section 01, except that the output layer has <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K+1</annotation></semantics></math> instead of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> dimensions (one extra censoring logit):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>ν</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>ν</mi><mi>K</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>ν</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mo>=</mo><msub><mi>W</mi><mrow><mi>L</mi><mo>+</mo><mn>1</mn></mrow></msub><msub><mi>h</mi><mi>L</mi></msub><mo>+</mo><msub><mi>b</mi><mrow><mi>L</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\nu(x,t)=\left(\nu_1(x,t),\dots,\nu_K(x,t),\nu_c(x,t)\right)^\top=W_{L+1}h_L+b_{L+1}\in\mathbb{R}^{K+1}.</annotation></semantics></math></p>
+<p>With the at-risk logit fixed at 0, the observed-state probabilities are</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>P</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>e</mi><mrow><msub><mi>ν</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mrow><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>P</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>e</mi><mrow><msub><mi>ν</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mrow><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msup><mi>e</mi><mrow><msub><mi>ν</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mo>+</mo><msup><mi>e</mi><mrow><msub><mi>ν</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">P_0(t\mid x)=\frac{1}{D(x,t)},\qquad P_k(t\mid x)=\frac{e^{\nu_k(x,t)}}{D(x,t)},\qquad P_c(t\mid x)=\frac{e^{\nu_c(x,t)}}{D(x,t)},\qquad D(x,t)=1+\sum_{j=1}^{K}e^{\nu_j(x,t)}+e^{\nu_c(x,t)}.</annotation></semantics></math></p>
+<p>The network now outputs the observed-state probabilities <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math> rather than <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>k</mi></msub><annotation encoding="application/x-tex">F_k</annotation></semantics></math>; <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>k</mi></msub><annotation encoding="application/x-tex">F_k</annotation></semantics></math> comes from the AJ recursion below.</p>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Loss: integrated cross-entropy over the observed state</span></p>
+<p>In every minibatch, draw <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> times <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>M</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{i1},\dots,t_{iM}</annotation></semantics></math> for each sample independently from a fixed distribution <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>τ</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,\tau]</annotation></semantics></math> (independent of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math>), and label them by <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta_i(t)</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℓ</mi><mi>A</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mo>log</mo><msub><mi>P</mi><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\ell_A(x_i,Y_i,\Delta_i)=\frac{1}{M}\sum_{m=1}^{M}\left[-\log P_{\eta_i(t_{im})}(t_{im}\mid x_i)\right],</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mo>log</mo><msub><mi>P</mi><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left"><mo>−</mo><mo>log</mo><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd><mtd columnalign="left"><mi>t</mi><mo>&lt;</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left"><mo>−</mo><mo>log</mo><msub><mi>P</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd><mtd columnalign="left"><mi>t</mi><mo>≥</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi><mo>≥</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left"><mo>−</mo><mo>log</mo><msub><mi>P</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd><mtd columnalign="left"><mi>t</mi><mo>≥</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>Δ</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">-\log P_{\eta_i(t)}(t\mid x_i)=\begin{cases}-\log P_0(t\mid x_i), &amp; t&lt;Y_i,\\ -\log P_k(t\mid x_i), &amp; t\ge Y_i,\ \Delta_i=k\ge1,\\ -\log P_c(t\mid x_i), &amp; t\ge Y_i,\ \Delta_i=0.\end{cases}</annotation></semantics></math></p>
+<p>The training objective is the sample average, i.e., a Monte Carlo approximation of the integral <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∫</mo><mn>0</mn><mi>τ</mi></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>w</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\int_0^\tau(\cdot)\,w(dt)</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>min</mo><mi>θ</mi></munder><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><msub><mi>ℒ</mi><mi>A</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>ℓ</mi><mi>A</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.222em"></mspace><mo>≈</mo><mspace width="0.222em"></mspace><mfrac><mn>1</mn><mi>n</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msubsup><mo>∫</mo><mn>0</mn><mi>τ</mi></msubsup><mo>−</mo><mo>log</mo><msub><mi>P</mi><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>w</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\min_\theta\ \ ℒ_A=\frac{1}{n}\sum_{i=1}^{n}\ell_A(x_i,Y_i,\Delta_i)\ \approx\ \frac{1}{n}\sum_{i=1}^{n}\int_0^\tau-\log P_{\eta_i(t)}(t\mid x_i)\,w(dt).</annotation></semantics></math></p>
+<ul>
+<li><strong>Choice of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math></strong>: for example <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle mathvariant="normal"><mi>U</mi><mi>n</mi><mi>i</mi><mi>f</mi></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathrm{Unif}(0,\tau)</annotation></semantics></math>, with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math> the upper end of the evaluation window (such as the 90%–97.5% quantile of observed times). Alternatively, the empirical distribution of the observed times <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math> puts more weight where data are dense.</li>
+<li><strong>One minibatch</strong>: draw <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>∼</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">t_{im}\sim w</annotation></semantics></math>; label 0 if <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>&lt;</mo><msub><mi>Y</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">t_{im}&lt;Y_i</annotation></semantics></math>, otherwise <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Δ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\Delta_i</annotation></semantics></math> (class <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math> if censored); feed <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x_i,t_{im})</annotation></semantics></math> through the network to get <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K+1</annotation></semantics></math> logits, prepend 0, apply log-softmax, pick the labeled entry, and average.</li>
+<li><strong>Compared with the current loss</strong>: the single-point <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\ell_1</annotation></semantics></math> at <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><annotation encoding="application/x-tex">\lambda_{\text{aug}}</annotation></semantics></math>, and the auxiliary Brier term are gone; the new ingredient is the label for <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>≥</mo><msub><mi>Y</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">t\ge Y_i</annotation></semantics></math> (event <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> or censored <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>).</li>
+</ul>
+<p><strong>Why this does not depend on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math></strong>: for every <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle mathvariant="double-struck"><mi>𝔼</mi></mstyle><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mo>log</mo><msub><mi>P</mi><mrow><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∣</mo><mi>X</mi><mo>=</mo><mi>x</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mo>−</mo><munder><mo>∑</mo><mrow><mi>l</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>K</mi><mo>,</mo><mi>c</mi><mo stretchy="false" form="postfix">}</mo></mrow></munder><msubsup><mi>P</mi><mi>l</mi><mtext mathvariant="normal">true</mtext></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>log</mo><msub><mi>P</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.222em"></mspace><mo>≥</mo><mspace width="0.222em"></mspace><mo>−</mo><munder><mo>∑</mo><mi>l</mi></munder><msubsup><mi>P</mi><mi>l</mi><mtext mathvariant="normal">true</mtext></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>log</mo><msubsup><mi>P</mi><mi>l</mi><mtext mathvariant="normal">true</mtext></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}\left[-\log P_{\eta(t)}(t\mid X)\mid X=x\right]=-\sum_{l\in\{0,1,\dots,K,c\}}P^{\text{true}}_l(t\mid x)\log P_l(t\mid x)\ \ge\ -\sum_{l}P^{\text{true}}_l(t\mid x)\log P^{\text{true}}_l(t\mid x),</annotation></semantics></math></p>
+<p>with equality if and only if <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>l</mi></msub><mo>=</mo><msubsup><mi>P</mi><mi>l</mi><mtext mathvariant="normal">true</mtext></msubsup></mrow><annotation encoding="application/x-tex">P_l=P^{\text{true}}_l</annotation></semantics></math> (Gibbs’ inequality). The minimizer is therefore the true observed-state probability, whatever <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> are. All labels are observed, so <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math> is never needed during training. The Brier version <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mn>1</mn><mi>n</mi></mfrac><msub><mo>∑</mo><mi>i</mi></msub><msubsup><mo>∫</mo><mn>0</mn><mi>τ</mi></msubsup><msub><mo>∑</mo><mi>l</mi></msub><msup><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>P</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>𝟙</mi><mo stretchy="false" form="prefix">{</mo><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>l</mi><mo stretchy="false" form="postfix">}</mo><mo stretchy="true" form="postfix">]</mo></mrow><mn>2</mn></msup><mi>w</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\frac{1}{n}\sum_i\int_0^\tau\sum_l\left[P_l(t\mid x_i)-𝟙\{\eta_i(t)=l\}\right]^2w(dt)</annotation></semantics></math>, which is Munch &amp; Gerds’ <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>B</mi><mo accent="true">‾</mo></mover><mi>τ</mi></msub><annotation encoding="application/x-tex">\bar{B}_\tau</annotation></semantics></math>, works as well.</p>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Recovering the CIF: the Aalen–Johansen identity</span></p>
+<p>On a grid <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>=</mo><msub><mi>s</mi><mn>0</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&lt;</mo><mi>…</mi><mo>&lt;</mo><msub><mi>s</mi><mi>J</mi></msub><mo>=</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">0=s_0&lt;s_1&lt;\dots&lt;s_J=\tau</annotation></semantics></math>, start from <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">S(s_0)=1</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F_k(s_0)=0</annotation></semantics></math> and recurse:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><mi>Δ</mi><msub><mi>Λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left"><mo>=</mo><mfrac><msub><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>P</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>P</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo></msub><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>F</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>Δ</mi><msub><mi>Λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left"><mo>=</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><munder><mo>∑</mo><mi>k</mi></munder><mi>Δ</mi><msub><mi>Λ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\Delta\Lambda_k(s_j)&amp;=\frac{\left[P_k(s_j)-P_k(s_{j-1})\right]_+}{P_0(s_{j-1})},\\
+F_k(s_j)&amp;=F_k(s_{j-1})+S(s_{j-1})\,\Delta\Lambda_k(s_j),\\
+S(s_j)&amp;=S(s_{j-1})\left(1-\sum_{k}\Delta\Lambda_k(s_j)\right).
+\end{aligned}</annotation></semantics></math></p>
+<p>This corresponds to Eqs. (3) and (11) in Munch &amp; Gerds. The resulting CIFs are monotone by construction and satisfy <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>+</mo><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>F</mi><mi>k</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">S+\sum_kF_k=1</annotation></semantics></math>, so PAV and rescaling are no longer needed. The same recursion also yields the censoring distribution <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>G</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat G(t\mid x)</annotation></semantics></math>.</p>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Old vs.&nbsp;new</span></p>
+<table>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Current SoftComp</th>
+<th style="text-align: left;">Option A</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Softmax classes</td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K+1</annotation></semantics></math>: survival + <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> causes</td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">K+2</annotation></semantics></math>: at risk + <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> observed causes + censored</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Evaluation times</td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math>, plus <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> points from <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle mathvariant="normal"><mi>U</mi><mi>n</mi><mi>i</mi><mi>f</mi></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>Y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathrm{Unif}(0,Y_i)</annotation></semantics></math></td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> points from a fixed distribution on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>τ</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,\tau]</annotation></semantics></math>, independent of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Labels</td>
+<td style="text-align: left;">censored subjects labeled survival at <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math>; no labels after <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math></td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta_i(t)</annotation></semantics></math>: 0 before <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math>, then <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Δ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\Delta_i</annotation></semantics></math> or <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Population target</td>
+<td style="text-align: left;">depends on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><annotation encoding="application/x-tex">\lambda_{\text{aug}}</annotation></semantics></math></td>
+<td style="text-align: left;">observed-data distribution → AJ → true CIF, free of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Hyperparameters</td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mtext mathvariant="normal">aug</mtext></msub><annotation encoding="application/x-tex">\lambda_{\text{aug}}</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>B</mi></msub><annotation encoding="application/x-tex">\lambda_B</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">M'</annotation></semantics></math>, class weights</td>
+<td style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> (variance only), grid <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Post-processing</td>
+<td style="text-align: left;">PAV + aggregate-mass rescaling</td>
+<td style="text-align: left;">none</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="card" data-animate="fade-up">
+<p><span class="card-title">Code changes (about 100–150 lines, mostly in <code>crsoft.py</code>)</span></p>
+<ul>
+<li>The output layer goes from <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K+1</annotation></semantics></math> dimensions (one extra censoring class).</li>
+<li><code>_train_step</code>: the three loss terms collapse into a single <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(K+2)</annotation></semantics></math>-class cross-entropy, which is shorter than the current code.</li>
+<li><code>predict_cif_survival_grid</code>: compute <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math> on a fine grid, then run the AJ recursion above; the return format is unchanged.</li>
+<li>The experiment scripts keep the same interface; only <code>aug_weight</code> and <code>brier_lambda</code> are dropped.</li>
+</ul>
+<p><span class="muted">Most of the work is re-running all SoftComp results (the baselines stay as they are), adding a censoring-level comparison, and rewriting Section 2.4 of the paper. Risks: increment errors are amplified in the tail where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_0</annotation></semantics></math> is small, and the C-index advantage may change, which has to be checked experimentally.</span></p>
+<div class="next">
+<p><strong>Next step</strong>: implement Option A with unit tests, then compare the old and new losses on Case III at <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>20</mn><mi>%</mi><mi>/</mi><mn>50</mn><mi>%</mi><mi>/</mi><mn>80</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\rho=20\%/50\%/80\%</annotation></semantics></math>. The old estimates should drift with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math> and the new ones should not; if that holds, roll it out to all experiments.</p>
+</div>
+</div>
+
+<footer class="foot">
+    Ming Gao · 2026-09-30<br>
+    Generated by <a href="https://fburl.com/claude-templates/k5rd6ab0">/visualize</a> claude skill
+</footer>
+
+</main>
+
+<script>
+// Menu toggle
+function toggleMenu() {
+    const menu = document.getElementById('vizMenu');
+    const toggle = menu.querySelector('.viz-menu-toggle');
+    const isOpen = menu.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+}
+
+// Close menu on outside click or Escape
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('vizMenu');
+    if (menu && !menu.contains(e.target)) menu.classList.remove('open');
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const menu = document.getElementById('vizMenu');
+        if (menu) menu.classList.remove('open');
+    }
+});
+
+// Theme toggle with persistence
+function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    // localStorage throws (SecurityError) in sandboxed iframes (e.g. Pixelcloud/Collab).
+    // Swallow it so a persistence failure never aborts the rest of this infra script —
+    // an unguarded throw here leaves every [data-animate] element at opacity:0 (blank page).
+    try { localStorage.setItem('visualize-dark-mode', isDark); } catch (e) {}
+    updateThemeLabel();
+}
+function updateThemeLabel() {
+    const isDark = document.body.classList.contains('dark-mode');
+    const icon = document.getElementById('themeIcon');
+    const label = document.getElementById('themeLabel');
+    if (icon) icon.textContent = isDark ? '☀' : '◐';
+    if (label) label.textContent = isDark ? 'Light mode' : 'Dark mode';
+}
+
+// Auto-apply saved theme or system preference.
+// Read once behind try/catch: localStorage access throws in sandboxed iframes, and an
+// unguarded throw here aborts script execution before the scroll-reveal observer below is
+// ever set up — leaving all [data-animate] content hidden (the blank-page failure mode).
+let savedTheme = null;
+try { savedTheme = localStorage.getItem('visualize-dark-mode'); } catch (e) {}
+if (savedTheme === 'true' ||
+    (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.body.classList.add('dark-mode');
+}
+updateThemeLabel();
+
+// Fullscreen toggle
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen();
+    }
+}
+document.addEventListener('fullscreenchange', function() {
+    const icon = document.getElementById('fsIcon');
+    const label = document.getElementById('fsLabel');
+    const isFs = !!document.fullscreenElement;
+    if (icon) icon.textContent = isFs ? '⛶' : '⛶';
+    if (label) label.textContent = isFs ? 'Exit fullscreen' : 'Fullscreen';
+});
+
+// Scroll-triggered reveal animations
+(function initScrollReveal() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('[data-animate]').forEach(function(el) {
+            el.classList.add('is-visible');
+        });
+        return;
+    }
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var el = entry.target;
+                var delay = parseInt(el.getAttribute('data-delay') || '0', 10);
+                var duration = el.getAttribute('data-duration');
+                if (duration) el.style.transitionDuration = duration + 'ms';
+                if (delay > 0) {
+                    setTimeout(function() { el.classList.add('is-visible'); }, delay);
+                } else {
+                    el.classList.add('is-visible');
+                }
+                observer.unobserve(el);
+            }
+        });
+    // threshold 0 + a negative bottom rootMargin keys the trigger to the element's top
+    // edge crossing ~85% of the viewport, independent of element height. A ratio-based
+    // threshold cannot work here: an element taller than 1/threshold viewports can never
+    // reach that ratio, so it would stay at opacity:0 forever (the blank-content failure).
+    }, { threshold: 0, rootMargin: '0px 0px -15% 0px' });
+    document.querySelectorAll('[data-animate]').forEach(function(el) {
+        observer.observe(el);
+    });
+
+    // Safety net: a reveal that never fires must degrade to visible, not invisible.
+    // Anything still hidden once the page has settled, but sitting above the fold's
+    // bottom edge, is shown unconditionally. Deferred past the longest plausible
+    // data-delay so the stagger still plays; the standalone timer covers pages where
+    // `load` never fires (a stalled font, image, or CDN script).
+    function revealStalled() {
+        document.querySelectorAll('[data-animate]:not(.is-visible)').forEach(function(el) {
+            if (el.getBoundingClientRect().top < window.innerHeight) {
+                el.classList.add('is-visible');
+            }
+        });
+    }
+    window.addEventListener('load', function() { setTimeout(revealStalled, 1000); });
+    setTimeout(revealStalled, 3000);
+})();
+
+// Slide deck hash navigation (auto-detected)
+// If the page has .slide elements, sync the URL hash with the current slide number.
+// Supports: #3 to jump to slide 3 on load, hash updates on navigation,
+// and hashchange events for manual URL edits.
+// Uses MutationObserver to detect slide changes — works regardless of how
+// navigation is triggered (onclick, keyboard closure, or window.goSlide).
+(function initSlideHash() {
+    var slides = document.querySelectorAll('.slide');
+    if (slides.length < 2) return; // Not a slide deck
+
+    // Track active slide and sync hash via MutationObserver
+    var lastHash = '';
+    function syncHash() {
+        for (var i = 0; i < slides.length; i++) {
+            if (slides[i].classList.contains('active')) {
+                var h = '#' + (i + 1);
+                if (h !== lastHash) {
+                    lastHash = h;
+                    history.replaceState(null, '', h);
+                }
+                return;
+            }
+        }
+    }
+    var observer = new MutationObserver(syncHash);
+    for (var i = 0; i < slides.length; i++) {
+        observer.observe(slides[i], { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // goToSlide: jump directly to slide n (0-indexed)
+    window.goToSlide = function(n) {
+        if (n < 0 || n >= slides.length) return;
+        var active = document.querySelector('.slide.active');
+        if (active) active.classList.remove('active');
+        slides[n].classList.add('active');
+        // Update counter/progress if present
+        var cur = document.getElementById('current');
+        var total = document.getElementById('total');
+        var progress = document.getElementById('progress');
+        if (cur) cur.textContent = n + 1;
+        if (total) total.textContent = slides.length;
+        if (progress) progress.style.width = ((n + 1) / slides.length * 100) + '%';
+        var prevBtn = document.querySelector('.nav-prev');
+        var nextBtn = document.querySelector('.nav-next');
+        if (prevBtn) prevBtn.disabled = n === 0;
+        if (nextBtn) nextBtn.disabled = n === slides.length - 1;
+    };
+
+    // Listen for manual hash changes
+    window.addEventListener('hashchange', function() {
+        var n = parseInt(location.hash.replace('#', ''), 10);
+        if (n >= 1 && n <= slides.length) window.goToSlide(n - 1);
+    });
+
+    // On initial load, jump to hash slide if specified
+    var startHash = parseInt(location.hash.replace('#', ''), 10);
+    if (startHash >= 1 && startHash <= slides.length) {
+        var active = document.querySelector('.slide.active');
+        if (active) active.classList.remove('active');
+        slides[startHash - 1].classList.add('active');
+        // Defer hash write to avoid interfering with page load
+        setTimeout(function() {
+            history.replaceState(null, '', '#' + startHash);
+            var cur = document.getElementById('current');
+            var progress = document.getElementById('progress');
+            if (cur) cur.textContent = startHash;
+            if (progress) progress.style.width = (startHash / slides.length * 100) + '%';
+            var prevBtn = document.querySelector('.nav-prev');
+            var nextBtn = document.querySelector('.nav-next');
+            if (prevBtn) prevBtn.disabled = startHash === 1;
+            if (nextBtn) nextBtn.disabled = startHash === slides.length;
+        }, 0);
+    }
+})();
+
+// Lazy-load html2canvas on first use (avoids unconditional 140KB CDN request)
+function loadHtml2Canvas() {
+    if (typeof html2canvas !== 'undefined') return Promise.resolve();
+    return new Promise(function(resolve, reject) {
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.integrity = 'sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H';
+        script.crossOrigin = 'anonymous';
+        script.onload = resolve;
+        script.onerror = function() { reject(new Error('html2canvas load failed')); };
+        document.head.appendChild(script);
+    });
+}
+
+// Save as image (full page screenshot via html2canvas)
+//
+// Known html2canvas limitations this function works around:
+// 1. body::before pseudo-elements (gradient backgrounds) — capture .container instead
+// 2. position:fixed elements — captured at wrong position, so capture .container
+// 3. CSS animations with opacity:0 start state — force all to end state before capture
+// 4. Google Fonts loading — wait for document.fonts.ready before capture
+// 5. Canvas size limits — cap scale at 2x for reasonable output size
+// 6. Tainted canvas in iframe contexts (Pixelcloud) — allowTaint must be false so
+//    toDataURL() doesn't throw SecurityError; resources failing CORS are simply omitted
+// 7. Data URL size limits — use toBlob + createObjectURL instead of toDataURL
+// 8. Modern CSS color() function — Chrome 111+ returns color(srgb ...) in computed
+//    styles, which html2canvas 1.4.1 can't parse. Strip in onclone before rendering.
+function saveAsImage() {
+    var btn = document.getElementById('saveImgBtn');
+    var label = btn.querySelector('span:last-child');
+    var origText = label.textContent;
+    label.textContent = 'Loading...';
+    btn.style.pointerEvents = 'none';
+
+    loadHtml2Canvas().then(function() {
+        label.textContent = 'Capturing...';
+        doCapture(btn, label, origText);
+    }).catch(function(err) {
+        console.error('Failed to load html2canvas:', err);
+        label.textContent = origText;
+        btn.style.pointerEvents = '';
+        alert('Could not load screenshot library. Try Print / Save as PDF instead.');
+    });
+}
+
+function doCapture(btn, label, origText) {
+    var menu = document.getElementById('vizMenu');
+    menu.style.display = 'none';
+
+    // 1. Find content container (avoids body::before and fixed-position issues)
+    var target = document.querySelector('.container')
+        || document.querySelector('main')
+        || document.querySelector('[role="main"]')
+        || document.body;
+
+    // 2. Inject override styles: force animated elements to their final visible state,
+    //    disable all transitions/animations so html2canvas sees static content
+    var overrideStyle = document.createElement('style');
+    overrideStyle.id = 'html2canvas-capture-overrides';
+    overrideStyle.textContent = [
+        // Force all animated/transitioning content to be fully visible and static
+        '*, *::before, *::after {',
+        '  animation-play-state: paused !important;',
+        '  animation-delay: 0s !important;',
+        '  animation-duration: 0s !important;',
+        '  transition-duration: 0s !important;',
+        '}',
+        // Common animation class patterns used by /visualize outputs
+        '.ani, .animate-in, [class*="delay-"],',
+        '.d1,.d2,.d3,.d4,.d5,.d6,.d7,.d8,.d9,.d10,',
+        '[data-animate] {',
+        '  opacity: 1 !important;',
+        '  transform: none !important;',
+        '  filter: none !important;',
+        '}',
+        // Keep the menu panel hidden during capture
+        '.viz-menu-panel { opacity: 0 !important; pointer-events: none !important; }',
+    ].join('\n');
+    document.head.appendChild(overrideStyle);
+
+    // 3. Give the target a solid background (body::before gradients won't be captured)
+    var origBg = target.style.background;
+    if (target !== document.body) {
+        target.style.background = getComputedStyle(document.body).backgroundColor || '#ffffff';
+    }
+
+    // 4. Scroll to top
+    var scrollPos = window.scrollY;
+    window.scrollTo(0, 0);
+
+    // 5. Wait for fonts to load, then capture
+    var capture = function() {
+        // Force layout recalc after style overrides
+        void target.offsetHeight;
+
+        // Patch window.getComputedStyle to convert CSS color() values to rgba().
+        // html2canvas 1.4.1 can't parse color() — Chrome 111+ uses it in
+        // computed styles. html2canvas uses the MAIN window's getComputedStyle
+        // (not the cloned iframe's), so we must patch it here.
+        // Restored in .finally() below.
+        var origGCS = window.getComputedStyle;
+        if (typeof Proxy !== 'undefined') {
+            var cvs = document.createElement('canvas');
+            cvs.width = cvs.height = 1;
+            var ctx = cvs.getContext('2d');
+            function fixColor(val) {
+                if (typeof val !== 'string' || val.indexOf('color(') === -1) return val;
+                ctx.clearRect(0, 0, 1, 1);
+                ctx.fillStyle = 'rgba(0,0,0,0)';
+                ctx.fillStyle = val;
+                ctx.fillRect(0, 0, 1, 1);
+                var d = ctx.getImageData(0, 0, 1, 1).data;
+                return 'rgba(' + d[0] + ',' + d[1] + ',' + d[2] + ',' + (d[3] / 255).toFixed(3) + ')';
+            }
+            window.getComputedStyle = function(el, pseudo) {
+                var style = origGCS.call(this, el, pseudo);
+                return new Proxy(style, {
+                    get: function(target, prop) {
+                        if (prop === 'getPropertyValue') {
+                            return function(name) { return fixColor(target.getPropertyValue(name)); };
+                        }
+                        var v = target[prop];
+                        if (typeof v === 'function') return v.bind(target);
+                        return fixColor(v);
+                    }
+                });
+            };
+        }
+
+        html2canvas(target, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            onclone: function(clonedDoc) {
+                // In the cloned document, ensure all elements are visible
+                var els = clonedDoc.querySelectorAll('.ani, .animate-in, [class*="delay-"], [data-animate]');
+                for (var i = 0; i < els.length; i++) {
+                    els[i].style.opacity = '1';
+                    els[i].style.transform = 'none';
+                    els[i].style.filter = 'none';
+                }
+            }
+        }).then(function(canvas) {
+            var filename = (document.title || 'visualization') + '.png';
+            // Use toBlob + createObjectURL instead of toDataURL to avoid:
+            // - Data URL size limits (~2MB in Chrome)
+            // - Silent failures with <a download>.click() in sandboxed iframes
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    alert('Screenshot failed. Try Print / Save as PDF instead.');
+                    return;
+                }
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.download = filename;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                // Revoke after a short delay to ensure download starts
+                setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+            }, 'image/png');
+        }).catch(function(err) {
+            console.error('Screenshot failed:', err);
+            alert('Screenshot failed. Try Print / Save as PDF instead.');
+        }).finally(function() {
+            // Restore everything
+            window.getComputedStyle = origGCS;
+            overrideStyle.remove();
+            target.style.background = origBg;
+            menu.style.display = '';
+            label.textContent = origText;
+            btn.style.pointerEvents = '';
+            menu.classList.remove('open');
+            window.scrollTo(0, scrollPos);
+        });
+    };
+
+    // Use Font Loading API if available, otherwise fall back to timeout
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() {
+            setTimeout(capture, 50);
+        });
+    } else {
+        setTimeout(capture, 500);
+    }
+}
+</script>
+
+<!-- FEEDBACK-CSS -->
+<style>
+.fb-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 3.5rem;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.75rem;
+    color: var(--text-secondary, #64748b);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: background 0.15s, border-color 0.15s;
+}
+.fb-toggle:hover {
+    background: var(--surface-hover, #f8fafc);
+    border-color: var(--border-strong, #cbd5e1);
+}
+.fb-toggle.active {
+    background: var(--primary, #0d9488);
+    color: #fff;
+    border-color: var(--primary, #0d9488);
+}
+.fb-section { position: relative; }
+.fb-trigger {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: var(--primary, #0d9488);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 20px;
+    text-align: center;
+    opacity: 0.5;
+    transition: opacity 0.2s, transform 0.15s;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    display: none;
+}
+body.fb-mode-on .fb-trigger { display: block; }
+.fb-trigger:hover { opacity: 1; transform: scale(1.15); }
+.fb-inline-form {
+    position: absolute;
+    top: 0.5rem;
+    right: 2.8rem;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #d0ddd6);
+    border-radius: 10px;
+    padding: 0.75rem;
+    width: 280px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    z-index: 101;
+    display: none;
+}
+.fb-inline-form.open { display: block; }
+.fb-inline-form textarea {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid var(--border, #d0ddd6);
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.8rem;
+    resize: vertical;
+    background: var(--bg, #f4f7f6);
+    color: var(--text-primary, #0f1f1a);
+}
+.fb-inline-form textarea:focus { outline: 2px solid var(--primary, #0d9488); border-color: transparent; }
+.fb-inline-form .fb-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; justify-content: flex-end; }
+.fb-inline-form button {
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+.fb-submit { background: var(--primary, #0d9488); color: #fff; }
+.fb-submit:hover { filter: brightness(1.1); }
+.fb-cancel { background: var(--bg-alt, #eaf0ee); color: var(--text-secondary, #4a6359); }
+.fb-section-label {
+    font-size: 0.65rem;
+    color: var(--text-muted, #7a9589);
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.fb-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text-primary, #0f1f1a);
+    color: #fff;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 300;
+    pointer-events: none;
+}
+.fb-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.fb-toggle-hint {
+    font-size: 0.6rem;
+    opacity: 0.7;
+    display: none;
+}
+.fb-toggle.fb-no-px .fb-toggle-hint { display: inline; }
+.fb-toggle.fb-no-px { cursor: default; opacity: 0.75; }
+@media print { .fb-toggle, .fb-trigger, .fb-inline-form { display: none !important; } }
+</style>
+
+<!-- FEEDBACK-HTML -->
+<button class="fb-toggle fb-no-px" id="fb-toggle" onclick="window._fbToggleMode()" title="Toggle feedback mode">
+    <span id="fb-toggle-icon">💬</span>
+    <span id="fb-toggle-label">Feedback</span>
+    <span class="fb-toggle-hint">(Pixelcloud only)</span>
+</button>
+<div class="fb-toast" id="fb-toast"></div>
+
+<!-- FEEDBACK-JS -->
+<script>
+(function() {
+    // Detect if we're inside a Pixelcloud iframe.
+    //
+    // Pixelcloud serves the HTML from lookaside.fbsbx.com inside an internalfb.com
+    // parent frame. We previously used document.referrer to detect this, but modern
+    // browsers (Chromium + Firefox under the default `strict-origin-when-cross-origin`
+    // referrer policy) strip the path on cross-origin loads — so `document.referrer`
+    // arrives as `https://www.internalfb.com/` (or empty), the `/intern/px/` substring
+    // is gone, and detection silently fails. The toggle then shows "Pixelcloud only"
+    // even though the user IS viewing via a pxl.cl/... URL.
+    //
+    // The `catch` clause was also dead code: every expression in the old `try` is
+    // same-origin and never throws.
+    //
+    // Reliable signal: we're in an iframe AND reading `window.parent.location.href`
+    // throws SecurityError. That's exactly the shape of a Pixelcloud embed —
+    // lookaside.fbsbx.com (child) inside internalfb.com (parent), cross-origin.
+    var inPixelcloud = false;
+    if (window.parent !== window) {
+        try {
+            // Same-origin probe — only succeeds if the parent is on our origin
+            // (e.g., a same-origin test harness). In Pixelcloud, this throws.
+            var parentHref = window.parent.location.href;
+            inPixelcloud = parentHref.indexOf('internalfb.com/intern/px') !== -1;
+        } catch (e) {
+            // Cross-origin parent — overwhelmingly likely a Pixelcloud iframe.
+            inPixelcloud = true;
+        }
+    }
+
+    var toggleBtn = document.getElementById('fb-toggle');
+
+    // If not in Pixelcloud, mark toggle as unavailable
+    if (!inPixelcloud) {
+        toggleBtn.classList.add('fb-no-px');
+    }
+
+    // Check default setting: data-feedback-default="off" to start disabled
+    var defaultSetting = toggleBtn ? toggleBtn.getAttribute('data-feedback-default') : null;
+    var feedbackEnabled = inPixelcloud && defaultSetting !== 'off';
+    var initialized = false;
+
+    function discoverSections() {
+        // Single unified pass:
+        // 1. Find every heading-like element on the page
+        // 2. Map each to its closest content container
+        // 3. Deduplicate (one icon per container)
+        // 4. Remove parents dominated by children (keep the most specific)
+
+        var SKIP = ['viz-menu', 'viz-menu-panel', 'fb-toggle', 'fb-toast', 'fb-inline-form'];
+        var seen = new Set();
+        var candidates = [];
+        var autoIdx = 0;
+
+        document.querySelectorAll('h1, h2, h3, h4, [class*="-title"], [class*="-header"]').forEach(function(h) {
+            if (!h.textContent || h.tagName === 'STYLE' || h.tagName === 'SCRIPT') return;
+            var text = h.textContent.replace(/\s+/g, ' ').trim();
+            if (text.length === 0 || text.length > 100) return;
+
+            var parent = h.closest('.step, .step-inner, .section, .card, .callout, .slide, .block, .panel, .phase, section, article, [data-feedback-section]') || h.parentElement;
+            if (!parent || parent === document.body || seen.has(parent)) return;
+
+            for (var i = 0; i < SKIP.length; i++) {
+                if (parent.classList.contains(SKIP[i])) return;
+            }
+
+            seen.add(parent);
+            autoIdx++;
+            if (!parent.id) parent.id = 'fb-s' + autoIdx;
+            candidates.push({ el: parent, id: parent.id, name: text.substring(0, 80) });
+        });
+
+        // Remove parents dominated by children: if A contains B, drop A
+        var sections = candidates.filter(function(a) {
+            return !candidates.some(function(b) {
+                return b !== a && a.el.contains(b.el);
+            });
+        });
+
+        return sections;
+    }
+
+    var PARENT_ORIGIN = 'https://www.internalfb.com';
+
+    // HTML escape helper to prevent XSS
+    function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    window.addEventListener('message', function(event) {
+        if (event.origin !== PARENT_ORIGIN) return;
+        if (event.data && event.data.type === 'px-comment-result') {
+            if (event.data.status === 'success') {
+                toast('Comment posted!');
+            } else {
+                toast('Error posting comment');
+            }
+        }
+    });
+
+    function initSections() {
+        if (initialized) return;
+        initialized = true;
+        var sections = discoverSections();
+        sections.forEach(function(s) {
+            var el = s.el, id = s.id, name = s.name;
+            if (el.classList.contains('fb-section')) return;
+
+            var anchor = el.querySelector('.step-inner, .card, .card-body, .content') || el;
+            anchor.classList.add('fb-section');
+            if (!anchor.style.position || anchor.style.position === 'static') {
+                anchor.style.position = 'relative';
+            }
+            var btn = document.createElement('button');
+            btn.className = 'fb-trigger';
+            btn.innerHTML = '&#128172;';
+            btn.title = 'Feedback on: ' + name;
+            btn.onclick = function(e) { e.stopPropagation(); openForm(anchor, id, name); };
+            anchor.appendChild(btn);
+        });
+    }
+
+    window._fbToggleMode = function() {
+        if (!inPixelcloud) {
+            toast('Feedback comments require viewing via a Pixelcloud link');
+            return;
+        }
+        feedbackEnabled = !feedbackEnabled;
+        document.body.classList.toggle('fb-mode-on', feedbackEnabled);
+        var toggleBtn = document.getElementById('fb-toggle');
+        var toggleLabel = document.getElementById('fb-toggle-label');
+        toggleBtn.classList.toggle('active', feedbackEnabled);
+        toggleLabel.textContent = feedbackEnabled ? 'Feedback On' : 'Feedback';
+        if (feedbackEnabled) {
+            initSections();
+            toast('Feedback mode enabled — click any section icon');
+        } else {
+            // Close any open forms
+            document.querySelectorAll('.fb-inline-form.open').forEach(function(f) { f.classList.remove('open'); });
+            toast('Feedback mode disabled');
+        }
+    };
+
+    function openForm(el, id, name) {
+        document.querySelectorAll('.fb-inline-form.open').forEach(function(f) { f.classList.remove('open'); });
+        var form = el.querySelector('.fb-inline-form');
+        if (!form) {
+            form = document.createElement('div');
+            form.className = 'fb-inline-form';
+
+            var label = document.createElement('div');
+            label.className = 'fb-section-label';
+            label.textContent = name;
+            form.appendChild(label);
+
+            var textarea = document.createElement('textarea');
+            textarea.placeholder = 'What would you change?';
+            form.appendChild(textarea);
+
+            var actions = document.createElement('div');
+            actions.className = 'fb-actions';
+
+            var cancelBtn = document.createElement('button');
+            cancelBtn.className = 'fb-cancel';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.addEventListener('click', function() { form.classList.remove('open'); });
+            actions.appendChild(cancelBtn);
+
+            var submitBtn = document.createElement('button');
+            submitBtn.className = 'fb-submit';
+            submitBtn.textContent = 'Add';
+            submitBtn.addEventListener('click', function() { window._fbSubmit(id, submitBtn); });
+            actions.appendChild(submitBtn);
+
+            form.appendChild(actions);
+            form.addEventListener('click', function(e) { e.stopPropagation(); });
+            el.appendChild(form);
+        }
+        form.classList.add('open');
+        form.querySelector('textarea').focus();
+    }
+
+    window._fbSubmit = function(sectionId, btn) {
+        var form = btn.closest('.fb-inline-form');
+        var ta = form.querySelector('textarea');
+        var text = ta.value.trim();
+        if (!text) return;
+
+        var label = form.querySelector('.fb-section-label');
+        var sectionName = label ? label.textContent : sectionId;
+        ta.value = '';
+        form.classList.remove('open');
+
+        var message = {
+            type: 'px-section-comment',
+            section_label: sectionName,
+            element_id: sectionId,
+            text: text
+        };
+
+        try {
+            window.parent.postMessage(message, PARENT_ORIGIN);
+            toast('Comment sent...');
+        } catch(e) {
+            toast('Failed: ' + e.message);
+        }
+    };
+
+    function toast(msg) {
+        var t = document.getElementById('fb-toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(function() { t.classList.remove('show'); }, 2500);
+    }
+
+    // Apply default state on load
+    function applyDefault() {
+        if (feedbackEnabled) {
+            document.body.classList.add('fb-mode-on');
+            toggleBtn.classList.add('active');
+            document.getElementById('fb-toggle-label').textContent = 'Feedback On';
+            initSections();
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyDefault);
+    } else {
+        applyDefault();
+    }
+})();
+</script>
+</body>
+</html>
