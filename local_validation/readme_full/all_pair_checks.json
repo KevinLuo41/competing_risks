@@ -1,0 +1,322 @@
+[
+  {
+    "case": 2,
+    "replicate": 0,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 1.904963493347168,
+    "time_max": 21.615249633789062
+  },
+  {
+    "case": 2,
+    "replicate": 1,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 3.219285488128662,
+    "time_max": 22.046283721923828
+  },
+  {
+    "case": 2,
+    "replicate": 2,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 2.7699036598205566,
+    "time_max": 21.86487579345703
+  },
+  {
+    "case": 2,
+    "replicate": 3,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 3.626725673675537,
+    "time_max": 21.310264587402344
+  },
+  {
+    "case": 2,
+    "replicate": 4,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 2.016968250274658,
+    "time_max": 22.91427230834961
+  },
+  {
+    "case": 2,
+    "replicate": 5,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 2.749697685241699,
+    "time_max": 22.298641204833984
+  },
+  {
+    "case": 2,
+    "replicate": 6,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 1.6100330352783203,
+    "time_max": 22.270034790039062
+  },
+  {
+    "case": 2,
+    "replicate": 7,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 3.960908889770508,
+    "time_max": 22.339675903320312
+  },
+  {
+    "case": 2,
+    "replicate": 8,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 1.891585350036621,
+    "time_max": 22.21753692626953
+  },
+  {
+    "case": 2,
+    "replicate": 9,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "time_min": 2.6470818519592285,
+    "time_max": 22.685508728027344
+  },
+  {
+    "case": 3,
+    "replicate": 0,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.029594171792268753,
+    "time_max": 18.0
+  },
+  {
+    "case": 3,
+    "replicate": 1,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.0344243198633194,
+    "time_max": 20.518169403076172
+  },
+  {
+    "case": 3,
+    "replicate": 2,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.04188534617424011,
+    "time_max": 18.412506103515625
+  },
+  {
+    "case": 3,
+    "replicate": 3,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.030907295644283295,
+    "time_max": 18.0
+  },
+  {
+    "case": 3,
+    "replicate": 4,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.011764267459511757,
+    "time_max": 19.41189193725586
+  },
+  {
+    "case": 3,
+    "replicate": 5,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.0007711939979344606,
+    "time_max": 18.0
+  },
+  {
+    "case": 3,
+    "replicate": 6,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.015974320471286774,
+    "time_max": 19.591720581054688
+  },
+  {
+    "case": 3,
+    "replicate": 7,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.04472797363996506,
+    "time_max": 18.0
+  },
+  {
+    "case": 3,
+    "replicate": 8,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.01512928120791912,
+    "time_max": 18.0
+  },
+  {
+    "case": 3,
+    "replicate": 9,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "time_min": 0.020317871123552322,
+    "time_max": 18.0
+  }
+]

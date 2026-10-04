@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-import later.unittest
+import unittest
 import torch
 
 from ..crsoft_model import CRSoftNet
@@ -104,7 +104,7 @@ def _passing_gate_inputs() -> tuple[dict, dict, dict[str, float]]:
     return metrics, manifests, truth
 
 
-class Case3V4FormalTest(later.unittest.TestCase):
+class Case3V4FormalTest(unittest.TestCase):
     def test_frozen_schedules_use_all_six_models_and_share_a_hash(self) -> None:
         development = build_config(_args("development"))
         formal = build_config(_args("formal"))

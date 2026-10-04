@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import later.unittest
+import unittest
 import torch
 
 from ..baseline_models.dsm import DSM, DSMNet
 
 
-class DSMTest(later.unittest.TestCase):
+class DSMTest(unittest.TestCase):
     def test_forward_all_matches_individual_cause_heads(self) -> None:
         torch.manual_seed(5)
         net = DSMNet(

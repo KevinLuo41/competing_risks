@@ -1,0 +1,26 @@
+{
+  "name": "aj-check_rho0.8_softcomp_seed0",
+  "pid": 64368,
+  "started": 1791073986.544907,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.censoring_levels import main; main()",
+    "aj-check",
+    "--method",
+    "softcomp",
+    "--rho",
+    "0.8",
+    "--seed",
+    "0",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring",
+    "--n-train",
+    "10000"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring/aj-check_rho0.8_softcomp_seed0.json",
+  "returncode": 0,
+  "seconds": 75.75677585601807
+}

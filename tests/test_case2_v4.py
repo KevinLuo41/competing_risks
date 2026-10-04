@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import later.unittest
+import unittest
 import torch
 
 from ..data.case2_v4 import (
@@ -12,7 +12,7 @@ from ..data.case2_v4 import (
 )
 
 
-class Case2V4Test(later.unittest.TestCase):
+class Case2V4Test(unittest.TestCase):
     def setUp(self) -> None:
         torch.set_num_threads(1)
 

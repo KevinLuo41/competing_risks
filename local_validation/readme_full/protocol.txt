@@ -1,0 +1,36 @@
+Full README reproduction on local CPU
+
+Scope: experiment I 200 repetitions for each beta and method/M; experiment II
+10 repetitions for both cases, both censoring conditions and all four methods;
+experiment III 5 seeds for each simulation cell, plus 8 AJ checks and theory.
+Sample sizes and epoch budgets are unchanged. NeuralFG uses the source's
+validation early stopping. Six simultaneous workers total, one Torch thread each.
+The README's internal Buck launch is replaced with imports of the same main().
+The installed environment is recorded in requirements.lock.txt.
+
+Changes and interpretation:
+- Internal later.unittest.TestCase imports replaced with standard unittest.TestCase.
+  No assertions removed. Initial full discovery: 102 tests pass; two modules fail
+  import because experiments/case1_v3 is absent. Those modules are outside the
+  three supplementary README experiments. Two new reproduction tests pass.
+- Experiment-II Case II now requests event-time quantiles through 97.5%, only in
+  joint_softcomp/uncensored.py. The original Case II formal 90% protocol is intact.
+  Case III retains its four explicitly defined fixed times in addition to 97.5%.
+  The README does not enumerate extra fixed Case II times and the supplied source
+  defines none; no ungrounded fixed Case II times have been invented. Thus exact
+  identity to the original server's evaluation grid cannot be guaranteed.
+- C_td is the supplied Antolini comparable-pair statistic. IBS uses censoring-KM
+  IPCW. This agrees with README section 1.1; section 4.1's statement that both use
+  IPCW is inconsistent with the provided implementation. No different concordance
+  estimator has been substituted to target the reported numbers.
+- analyze_simple now pools Cox/null reference chunks instead of overwriting them.
+  Its previously restored missing cells expression is retained.
+- Initial main_manifest hashes were captured before the experiment-II-only grid
+  change and summary-only pooling fix. Neither change affects experiment I/III
+  model fitting or outputs. uncensored_manifest captures its own launch source.
+- Old REPS=2 outputs are not mixed into this run. All full-scale results are new.
+- README remains local and untracked. No GitHub push has been performed for these fixes.
+
+Evidence: per-task records preserve commands, PID, timing, output and exit code;
+logs preserve stdout/stderr. audit_results.py requires every expected output,
+finite values, and exact experiment-I repetition coverage before final summaries.

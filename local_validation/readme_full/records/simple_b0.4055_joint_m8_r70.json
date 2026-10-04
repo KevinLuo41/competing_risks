@@ -1,0 +1,26 @@
+{
+  "name": "simple_b0.4055_joint_m8_r70",
+  "pid": 70908,
+  "started": 1791075802.363626,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.simple import main; main()",
+    "joint",
+    "--beta",
+    "0.4054651081",
+    "--m",
+    "8",
+    "--rep-start",
+    "70",
+    "--reps",
+    "10",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple/simple_b0.4055_joint_m8_r70.json",
+  "returncode": 0,
+  "seconds": 18.826627016067505
+}

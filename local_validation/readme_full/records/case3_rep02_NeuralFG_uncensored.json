@@ -1,0 +1,24 @@
+{
+  "name": "case3_rep02_NeuralFG_uncensored",
+  "pid": 64203,
+  "started": 1791073878.6892421,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.uncensored import main; main()",
+    "--case",
+    "3",
+    "--method",
+    "NeuralFG",
+    "--replicate",
+    "2",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/uncensored",
+    "--uncensored"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/uncensored/case3_rep02_NeuralFG.json",
+  "returncode": 0,
+  "seconds": 13.715222120285034
+}

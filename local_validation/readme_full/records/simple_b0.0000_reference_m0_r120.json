@@ -1,0 +1,26 @@
+{
+  "name": "simple_b0.0000_reference_m0_r120",
+  "pid": 72354,
+  "started": 1791076364.970027,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.simple import main; main()",
+    "reference",
+    "--beta",
+    "0",
+    "--m",
+    "0",
+    "--rep-start",
+    "120",
+    "--reps",
+    "10",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple/simple_b0.0000_reference_m0_r120.json",
+  "returncode": 0,
+  "seconds": 3.976032018661499
+}

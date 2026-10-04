@@ -1,0 +1,26 @@
+{
+  "name": "simple_b0.4055_joint_m4_r90",
+  "pid": 71640,
+  "started": 1791076063.678824,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.simple import main; main()",
+    "joint",
+    "--beta",
+    "0.4054651081",
+    "--m",
+    "4",
+    "--rep-start",
+    "90",
+    "--reps",
+    "10",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple/simple_b0.4055_joint_m4_r90.json",
+  "returncode": 0,
+  "seconds": 14.12079405784607
+}

@@ -1,0 +1,374 @@
+Full README experiment results
+
+Coverage verified: 200 / 10 / 5 repeats; all four experiment-II methods.
+See protocol.txt for environment, evaluation conventions and source discrepancies.
+
+simple_summary
+
+
+beta = 0  (test event fraction 0.397)
+| Method | M | n | Brier(10) | AUC(10) | IPA | MSE vs truth |
+|---|---|---|---|---|---|---|
+| True model |  | 1 | 0.2393 | 0.500 | -0.000 | 0.0000 |
+| Cox |  | 200 | 0.2412 (0.0021) | 0.500 (0.003) | -0.002 (0.003) | 0.0019 (0.0021) |
+| No covariate |  | 200 | 0.2406 (0.0020) | 0.500 (0.000) | 0.000 (0.000) | 0.0013 (0.0020) |
+| SoftComp | 0 | 200 | 0.6034 (0.0000) | 0.500 (0.001) | -1.507 (0.020) | 0.3679 (0.0000) |
+| SoftComp, limit | 0 | 1 | 0.6034 | 0.500 | -1.521 | 0.3679 |
+| SoftComp | 1 | 200 | 0.3182 (0.0105) | 0.500 (0.003) | -0.322 (0.044) | 0.0806 (0.0106) |
+| SoftComp, limit | 1 | 1 | 0.3220 | 0.500 | -0.346 | 0.0846 |
+| SoftComp | 2 | 200 | 0.2556 (0.0055) | 0.499 (0.003) | -0.062 (0.023) | 0.0170 (0.0056) |
+| SoftComp, limit | 2 | 1 | 0.2545 | 0.500 | -0.064 | 0.0160 |
+| SoftComp | 4 | 200 | 0.2419 (0.0018) | 0.499 (0.003) | -0.005 (0.010) | 0.0023 (0.0017) |
+| SoftComp, limit | 4 | 1 | 0.2414 | 0.500 | -0.009 | 0.0018 |
+| SoftComp | 8 | 200 | 0.2726 (0.0056) | 0.499 (0.003) | -0.133 (0.025) | 0.0322 (0.0055) |
+| SoftComp, limit | 8 | 1 | 0.2730 | 0.500 | -0.141 | 0.0325 |
+| JointSoftComp | 1 | 200 | 0.2431 (0.0031) | 0.499 (0.003) | -0.010 (0.011) | 0.0035 (0.0029) |
+| JointSoftComp | 2 | 200 | 0.2431 (0.0032) | 0.500 (0.003) | -0.010 (0.011) | 0.0036 (0.0030) |
+| JointSoftComp | 4 | 200 | 0.2432 (0.0031) | 0.500 (0.003) | -0.010 (0.010) | 0.0036 (0.0029) |
+| JointSoftComp | 8 | 200 | 0.2432 (0.0032) | 0.500 (0.003) | -0.011 (0.011) | 0.0037 (0.0030) |
+
+beta = log 1.5  (test event fraction 0.408)
+| Method | M | n | Brier(10) | AUC(10) | IPA | MSE vs truth |
+|---|---|---|---|---|---|---|
+| True model |  | 1 | 0.2270 | 0.640 | 0.060 | 0.0000 |
+| Cox |  | 200 | 0.2288 (0.0020) | 0.640 (0.000) | 0.059 (0.004) | 0.0017 (0.0019) |
+| No covariate |  | 200 | 0.2430 (0.0021) | 0.500 (0.000) | 0.000 (0.000) | 0.0158 (0.0020) |
+| SoftComp | 0 | 200 | 0.5916 (0.0000) | 0.509 (0.034) | -1.434 (0.020) | 0.3690 (0.0000) |
+| SoftComp, limit | 0 | 1 | 0.5916 | 0.500 | -1.448 | 0.3690 |
+| SoftComp | 1 | 200 | 0.3076 (0.0119) | 0.639 (0.003) | -0.266 (0.051) | 0.0825 (0.0121) |
+| SoftComp, limit | 1 | 1 | 0.3083 | 0.640 | -0.276 | 0.0833 |
+| SoftComp | 2 | 200 | 0.2457 (0.0066) | 0.639 (0.004) | -0.011 (0.029) | 0.0195 (0.0068) |
+| SoftComp, limit | 2 | 1 | 0.2440 | 0.640 | -0.010 | 0.0177 |
+| SoftComp | 4 | 200 | 0.2349 (0.0027) | 0.639 (0.005) | 0.033 (0.012) | 0.0074 (0.0026) |
+| SoftComp, limit | 4 | 1 | 0.2343 | 0.640 | 0.030 | 0.0068 |
+| SoftComp | 8 | 200 | 0.2698 (0.0064) | 0.638 (0.007) | -0.110 (0.026) | 0.0411 (0.0062) |
+| SoftComp, limit | 8 | 1 | 0.2699 | 0.640 | -0.117 | 0.0413 |
+| JointSoftComp | 1 | 200 | 0.2308 (0.0031) | 0.639 (0.004) | 0.050 (0.009) | 0.0035 (0.0029) |
+| JointSoftComp | 2 | 200 | 0.2306 (0.0029) | 0.639 (0.006) | 0.051 (0.009) | 0.0034 (0.0027) |
+| JointSoftComp | 4 | 200 | 0.2306 (0.0028) | 0.638 (0.007) | 0.051 (0.008) | 0.0033 (0.0026) |
+| JointSoftComp | 8 | 200 | 0.2307 (0.0028) | 0.638 (0.008) | 0.051 (0.009) | 0.0035 (0.0027) |
+
+beta = log 2  (test event fraction 0.425)
+| Method | M | n | Brier(10) | AUC(10) | IPA | MSE vs truth |
+|---|---|---|---|---|---|---|
+| True model |  | 1 | 0.2050 | 0.729 | 0.161 | 0.0000 |
+| Cox |  | 200 | 0.2064 (0.0017) | 0.729 (0.000) | 0.160 (0.004) | 0.0014 (0.0017) |
+| No covariate |  | 200 | 0.2457 (0.0020) | 0.500 (0.000) | 0.000 (0.000) | 0.0392 (0.0020) |
+| SoftComp | 0 | 200 | 0.5749 (0.0000) | 0.524 (0.062) | -1.340 (0.019) | 0.3735 (0.0000) |
+| SoftComp, limit | 0 | 1 | 0.5749 | 0.500 | -1.352 | 0.3735 |
+| SoftComp | 1 | 200 | 0.2887 (0.0143) | 0.729 (0.000) | -0.175 (0.059) | 0.0851 (0.0143) |
+| SoftComp, limit | 1 | 1 | 0.2860 | 0.729 | -0.170 | 0.0824 |
+| SoftComp | 2 | 200 | 0.2288 (0.0082) | 0.729 (0.000) | 0.069 (0.034) | 0.0240 (0.0083) |
+| SoftComp, limit | 2 | 1 | 0.2257 | 0.729 | 0.077 | 0.0209 |
+| SoftComp | 4 | 200 | 0.2219 (0.0040) | 0.729 (0.001) | 0.097 (0.017) | 0.0156 (0.0039) |
+| SoftComp, limit | 4 | 1 | 0.2202 | 0.729 | 0.099 | 0.0139 |
+| SoftComp | 8 | 200 | 0.2622 (0.0076) | 0.729 (0.001) | -0.067 (0.031) | 0.0545 (0.0074) |
+| SoftComp, limit | 8 | 1 | 0.2609 | 0.729 | -0.067 | 0.0532 |
+| JointSoftComp | 1 | 200 | 0.2082 (0.0026) | 0.729 (0.000) | 0.153 (0.008) | 0.0031 (0.0025) |
+| JointSoftComp | 2 | 200 | 0.2082 (0.0026) | 0.729 (0.000) | 0.153 (0.008) | 0.0031 (0.0024) |
+| JointSoftComp | 4 | 200 | 0.2082 (0.0025) | 0.729 (0.001) | 0.153 (0.007) | 0.0031 (0.0023) |
+| JointSoftComp | 8 | 200 | 0.2080 (0.0024) | 0.729 (0.001) | 0.153 (0.007) | 0.0030 (0.0023) |
+
+
+uncensored_summary
+
+
+Case 2
+| Method | n | Censored MSE | C_td | IBS | Uncensored MSE | C_td | IBS |
+|---|---|---|---|---|---|---|---|
+| JointSoftComp | 10 | 2.28 (0.15) | 0.750 (0.012) | 0.062 (0.003) | 1.72 (0.13) | 0.740 (0.010) | 0.061 (0.003) |
+| SoftComp (manuscript) | 10 | 8.12 (0.42) | 0.750 (0.010) | 0.066 (0.003) | 14.29 (0.39) | 0.739 (0.010) | 0.070 (0.003) |
+| SoftComp, no augmentation | 10 | 20.33 (0.94) | 0.747 (0.009) | 0.076 (0.003) | 59.49 (2.44) | 0.721 (0.011) | 0.146 (0.004) |
+| NeuralFG | 10 | 5.58 (1.27) | 0.726 (0.011) | 0.064 (0.002) | 3.35 (0.56) | 0.732 (0.010) | 0.062 (0.003) |
+
+Case 3
+| Method | n | Censored MSE | C_td | IBS | Uncensored MSE | C_td | IBS |
+|---|---|---|---|---|---|---|---|
+| JointSoftComp | 10 | 1.12 (0.26) | 0.681 (0.008) | 0.124 (0.003) | 0.81 (0.11) | 0.678 (0.005) | 0.121 (0.002) |
+| SoftComp (manuscript) | 10 | 3.20 (0.41) | 0.687 (0.008) | 0.127 (0.002) | 4.31 (0.15) | 0.678 (0.006) | 0.123 (0.002) |
+| SoftComp, no augmentation | 10 | 9.22 (0.60) | 0.683 (0.008) | 0.129 (0.002) | 61.14 (2.38) | 0.669 (0.006) | 0.162 (0.002) |
+| NeuralFG | 10 | 3.44 (0.50) | 0.653 (0.012) | 0.127 (0.002) | 2.24 (0.25) | 0.661 (0.007) | 0.124 (0.002) |
+
+
+censoring_summary
+
+aj-check rho=0.0 joint    max|fit-AJ|=0.0145 max|fit-truth|=0.0117 max|AJ-truth|=0.0069
+aj-check rho=0.0 softcomp max|fit-AJ|=0.1017 max|fit-truth|=0.1022 max|AJ-truth|=0.0069
+aj-check rho=0.2 joint    max|fit-AJ|=0.0112 max|fit-truth|=0.0081 max|AJ-truth|=0.0057
+aj-check rho=0.2 softcomp max|fit-AJ|=0.1154 max|fit-truth|=0.1148 max|AJ-truth|=0.0057
+aj-check rho=0.5 joint    max|fit-AJ|=0.0195 max|fit-truth|=0.0206 max|AJ-truth|=0.0092
+aj-check rho=0.5 softcomp max|fit-AJ|=0.1504 max|fit-truth|=0.1507 max|AJ-truth|=0.0092
+aj-check rho=0.8 joint    max|fit-AJ|=0.0761 max|fit-truth|=0.0748 max|AJ-truth|=0.0359
+aj-check rho=0.8 softcomp max|fit-AJ|=0.2089 max|fit-truth|=0.1878 max|AJ-truth|=0.0359
+case3    rho=0.0 joint    n=5 cens<tau=0.00 MSE=0.00101 Ctd=0.6844 IBS=0.1261 bias@t10=[-0.003, -0.004, -0.003] bias@t20=[0.001, -0.001, -0.001]
+case3    rho=0.0 softcomp n=5 cens<tau=0.00 MSE=0.00597 Ctd=0.6829 IBS=0.1310 bias@t10=[0.009, 0.007, 0.008] bias@t20=[-0.095, -0.097, -0.097]
+case3    rho=0.2 joint    n=5 cens<tau=0.20 MSE=0.00120 Ctd=0.6852 IBS=0.1261 bias@t10=[-0.002, -0.003, -0.002] bias@t20=[0.0, 0.002, 0.005]
+case3    rho=0.2 softcomp n=5 cens<tau=0.20 MSE=0.00700 Ctd=0.6835 IBS=0.1320 bias@t10=[-0.013, -0.016, -0.013] bias@t20=[-0.113, -0.118, -0.115]
+case3    rho=0.5 joint    n=5 cens<tau=0.50 MSE=0.00173 Ctd=0.6822 IBS=0.1266 bias@t10=[-0.002, -0.003, -0.001] bias@t20=[-0.005, -0.009, 0.004]
+case3    rho=0.5 softcomp n=5 cens<tau=0.50 MSE=0.01105 Ctd=0.6850 IBS=0.1360 bias@t10=[-0.05, -0.054, -0.051] bias@t20=[-0.141, -0.148, -0.131]
+case3    rho=0.8 joint    n=5 cens<tau=0.80 MSE=0.00607 Ctd=0.6761 IBS=0.1311 bias@t10=[-0.002, 0.006, 0.003] bias@t20=[-0.06, -0.022, -0.05]
+case3    rho=0.8 softcomp n=5 cens<tau=0.80 MSE=0.02583 Ctd=0.6736 IBS=0.1512 bias@t10=[-0.105, -0.106, -0.119] bias@t20=[-0.17, -0.19, -0.206]
+constant rho=0.0 joint    n=5 cens<tau=0.00 MSE=0.00062 Ctd=0.6682 IBS=0.1429 bias@t10=[-0.006, -0.004, -0.003] bias@t20=[0.001, 0.0, -0.002]
+constant rho=0.0 softcomp n=5 cens<tau=0.00 MSE=0.00723 Ctd=0.6652 IBS=0.1493 bias@t10=[-0.063, -0.051, -0.039] bias@t20=[-0.147, -0.106, -0.09]
+constant rho=0.2 joint    n=5 cens<tau=0.20 MSE=0.00067 Ctd=0.6663 IBS=0.1432 bias@t10=[-0.006, -0.005, -0.004] bias@t20=[0.002, 0.001, -0.004]
+constant rho=0.2 softcomp n=5 cens<tau=0.20 MSE=0.01135 Ctd=0.6674 IBS=0.1535 bias@t10=[-0.103, -0.075, -0.061] bias@t20=[-0.186, -0.131, -0.112]
+constant rho=0.5 joint    n=5 cens<tau=0.50 MSE=0.00121 Ctd=0.6661 IBS=0.1439 bias@t10=[-0.007, -0.004, -0.006] bias@t20=[-0.003, 0.015, -0.034]
+constant rho=0.5 softcomp n=5 cens<tau=0.50 MSE=0.02093 Ctd=0.6690 IBS=0.1631 bias@t10=[-0.156, -0.114, -0.098] bias@t20=[-0.235, -0.166, -0.149]
+constant rho=0.8 joint    n=5 cens<tau=0.80 MSE=0.01003 Ctd=0.6585 IBS=0.1534 bias@t10=[-0.049, -0.003, -0.055] bias@t20=[-0.131, -0.047, -0.105]
+constant rho=0.8 softcomp n=5 cens<tau=0.80 MSE=0.04824 Ctd=0.6667 IBS=0.1904 bias@t10=[-0.25, -0.184, -0.149] bias@t20=[-0.33, -0.239, -0.2]
+depcens  rho=0.2 joint    n=5 cens<tau=0.20 MSE=0.00136 Ctd=0.6843 IBS=0.1264 bias@t10=[-0.002, -0.004, -0.001] bias@t20=[-0.004, -0.001, 0.006]
+depcens  rho=0.2 softcomp n=5 cens<tau=0.20 MSE=0.00745 Ctd=0.6749 IBS=0.1323 bias@t10=[-0.016, -0.016, -0.012] bias@t20=[-0.117, -0.119, -0.115]
+depcens  rho=0.5 joint    n=5 cens<tau=0.50 MSE=0.00232 Ctd=0.6812 IBS=0.1272 bias@t10=[-0.008, -0.002, 0.001] bias@t20=[-0.002, -0.008, 0.0]
+depcens  rho=0.5 softcomp n=5 cens<tau=0.50 MSE=0.01310 Ctd=0.6543 IBS=0.1382 bias@t10=[-0.055, -0.057, -0.052] bias@t20=[-0.147, -0.156, -0.148]
+depcens  rho=0.8 joint    n=5 cens<tau=0.80 MSE=0.00819 Ctd=0.6681 IBS=0.1327 bias@t10=[0.003, 0.002, -0.017] bias@t20=[0.002, 0.009, -0.03]
+depcens  rho=0.8 softcomp n=5 cens<tau=0.80 MSE=0.02775 Ctd=0.5938 IBS=0.1531 bias@t10=[-0.111, -0.108, -0.121] bias@t20=[-0.195, -0.183, -0.203]
+
+
+population_targets
+
+
+Constant hazards: lambda_c = {'0%': 0.0, '20%': 0.038610105978466105, '50%': 0.15073635160025597, '80%': 0.600000917691522}
+
+=== Constant hazards (lam1=0.10, lam2=0.05), cause 1  (lambda_aug * M = 1, tau = 20)
+  rho     t    true      CE  CE+aug   Brier   A(AJ)
+   0%   1.0   0.093   0.667   0.246   0.093   0.093
+   0%   5.0   0.352   0.667   0.386   0.352   0.352
+   0%  10.0   0.518   0.667   0.455   0.518   0.518
+   0%  15.0   0.596   0.667   0.489   0.596   0.596
+   0%  20.0   0.633   0.667   0.500   0.633   0.633
+  20%   1.0   0.093   0.530   0.209   0.091   0.093
+  20%   5.0   0.352   0.530   0.327   0.324   0.352
+  20%  10.0   0.518   0.530   0.383   0.450   0.518
+  20%  15.0   0.596   0.530   0.410   0.499   0.596
+  20%  20.0   0.633   0.530   0.419   0.518   0.633
+  50%   1.0   0.093   0.333   0.150   0.086   0.093
+  50%   5.0   0.352   0.333   0.230   0.259   0.352
+  50%  10.0   0.518   0.333   0.263   0.316   0.518
+  50%  15.0   0.596   0.333   0.279   0.329   0.596
+  50%  20.0   0.633   0.333   0.285   0.332   0.633
+  80%   1.0   0.093   0.133   0.077   0.070   0.093
+  80%   5.0   0.352   0.133   0.109   0.130   0.352
+  80%  10.0   0.518   0.133   0.119   0.133   0.518
+  80%  15.0   0.596   0.133   0.123   0.133   0.596
+  80%  20.0   0.633   0.133   0.125   0.133   0.633
+
+=== Constant hazards (lam1=0.10, lam2=0.05), cause 1  (lambda_aug * M = 4, tau = 20)
+  rho     t    true      CE  CE+aug   Brier   A(AJ)
+   0%   1.0   0.093   0.667   0.085   0.093   0.093
+   0%   5.0   0.352   0.667   0.170   0.352   0.352
+   0%  10.0   0.518   0.667   0.233   0.518   0.518
+   0%  15.0   0.596   0.667   0.272   0.596   0.596
+   0%  20.0   0.633   0.667   0.286   0.633   0.633
+  20%   1.0   0.093   0.530   0.074   0.091   0.093
+  20%   5.0   0.352   0.530   0.152   0.324   0.352
+  20%  10.0   0.518   0.530   0.209   0.450   0.518
+  20%  15.0   0.596   0.530   0.244   0.499   0.596
+  20%  20.0   0.633   0.530   0.257   0.518   0.633
+  50%   1.0   0.093   0.333   0.057   0.086   0.093
+  50%   5.0   0.352   0.333   0.119   0.259   0.352
+  50%  10.0   0.518   0.333   0.162   0.316   0.518
+  50%  15.0   0.596   0.333   0.189   0.329   0.596
+  50%  20.0   0.633   0.333   0.200   0.332   0.633
+  80%   1.0   0.093   0.133   0.034   0.070   0.093
+  80%   5.0   0.352   0.133   0.071   0.130   0.352
+  80%  10.0   0.518   0.133   0.090   0.133   0.518
+  80%  15.0   0.596   0.133   0.100   0.133   0.596
+  80%  20.0   0.633   0.133   0.105   0.133   0.633
+
+Case III: lambda_c = {'0%': 0.0, '20%': 0.026407006971560957, '50%': 0.0914388200215922, '80%': 0.2798898671823716}
+
+=== Case III x=[0.0, 1.0, 0.2, 0.3], cause 1 (pi_k=0.562)  (lambda_aug * M = 1, tau = 20)
+  rho     t    true      CE  CE+aug   Brier   A(AJ)
+   0%   2.0   0.035   0.562   0.141   0.035   0.035
+   0%   5.0   0.137   0.562   0.266   0.137   0.137
+   0%  10.0   0.346   0.562   0.395   0.346   0.346
+   0%  15.0   0.488   0.562   0.459   0.488   0.488
+   0%  20.0   0.545   0.562   0.489   0.545   0.545
+  20%   2.0   0.035   0.362   0.115   0.034   0.035
+  20%   5.0   0.137   0.440   0.230   0.127   0.137
+  20%  10.0   0.346   0.488   0.355   0.299   0.346
+  20%  15.0   0.488   0.509   0.423   0.402   0.488
+  20%  20.0   0.545   0.521   0.458   0.438   0.545
+  50%   2.0   0.035   0.193   0.080   0.031   0.035
+  50%   5.0   0.137   0.287   0.173   0.105   0.137
+  50%  10.0   0.346   0.369   0.285   0.212   0.346
+  50%  15.0   0.488   0.414   0.354   0.258   0.488
+  50%  20.0   0.545   0.441   0.395   0.270   0.545
+  80%   2.0   0.035   0.082   0.045   0.025   0.035
+  80%   5.0   0.137   0.143   0.103   0.064   0.137
+  80%  10.0   0.346   0.217   0.183   0.092   0.346
+  80%  15.0   0.488   0.268   0.241   0.097   0.488
+  80%  20.0   0.545   0.306   0.283   0.097   0.545
+
+=== Case III x=[0.0, 1.0, 0.2, 1.7], cause 1 (pi_k=0.562)  (lambda_aug * M = 1, tau = 20)
+  rho     t    true      CE  CE+aug   Brier   A(AJ)
+   0%   2.0   0.090   0.562   0.211   0.090   0.090
+   0%   5.0   0.207   0.562   0.283   0.207   0.207
+   0%  10.0   0.354   0.562   0.355   0.354   0.354
+   0%  15.0   0.449   0.562   0.397   0.449   0.449
+   0%  20.0   0.505   0.562   0.418   0.505   0.505
+  20%   2.0   0.090   0.435   0.178   0.088   0.090
+  20%   5.0   0.207   0.444   0.242   0.194   0.207
+  20%  10.0   0.354   0.457   0.306   0.316   0.354
+  20%  15.0   0.449   0.467   0.346   0.385   0.449
+  20%  20.0   0.505   0.475   0.368   0.420   0.505
+  50%   2.0   0.090   0.279   0.131   0.082   0.090
+  50%   5.0   0.207   0.293   0.180   0.168   0.207
+  50%  10.0   0.354   0.313   0.230   0.244   0.354
+  50%  15.0   0.449   0.330   0.263   0.275   0.449
+  50%  20.0   0.505   0.345   0.285   0.287   0.505
+  80%   2.0   0.090   0.137   0.079   0.069   0.090
+  80%   5.0   0.207   0.147   0.107   0.115   0.207
+  80%  10.0   0.354   0.163   0.135   0.135   0.354
+  80%  15.0   0.449   0.178   0.156   0.139   0.449
+  80%  20.0   0.505   0.192   0.172   0.139   0.505
+
+
+Comparison with README
+
+Local full-run means vs rounded README tables
+MSE_overall values are multiplied by 1000. SD is across repetitions.
+Differences are descriptive, not pass/fail tolerances. See protocol.txt for grid/metric and environment differences.
+| Experiment | Setting | Method | Metric | n | Local mean | SD | README | Difference |
+|---|---|---|---|---|---|---|---|---|
+| I | beta=0, M=0 | softcomp | Brier(10) | 200 | 0.60338 | 0.00000 | 0.60300 | +0.00038 |
+| I | beta=0.4055, M=0 | softcomp | Brier(10) | 200 | 0.59156 | 0.00000 | 0.59200 | -0.00044 |
+| I | beta=0.6931, M=0 | softcomp | Brier(10) | 200 | 0.57486 | 0.00000 | 0.57500 | -0.00014 |
+| I | beta=0, M=1 | softcomp | Brier(10) | 200 | 0.31817 | 0.01052 | 0.31800 | +0.00017 |
+| I | beta=0.4055, M=1 | softcomp | Brier(10) | 200 | 0.30759 | 0.01194 | 0.30800 | -0.00041 |
+| I | beta=0.6931, M=1 | softcomp | Brier(10) | 200 | 0.28870 | 0.01426 | 0.28900 | -0.00030 |
+| I | beta=0, M=2 | softcomp | Brier(10) | 200 | 0.25559 | 0.00546 | 0.25600 | -0.00041 |
+| I | beta=0.4055, M=2 | softcomp | Brier(10) | 200 | 0.24575 | 0.00659 | 0.24600 | -0.00025 |
+| I | beta=0.6931, M=2 | softcomp | Brier(10) | 200 | 0.22881 | 0.00818 | 0.22900 | -0.00019 |
+| I | beta=0, M=4 | softcomp | Brier(10) | 200 | 0.24188 | 0.00181 | 0.24200 | -0.00012 |
+| I | beta=0.4055, M=4 | softcomp | Brier(10) | 200 | 0.23494 | 0.00268 | 0.23500 | -0.00006 |
+| I | beta=0.6931, M=4 | softcomp | Brier(10) | 200 | 0.22195 | 0.00405 | 0.22200 | -0.00005 |
+| I | beta=0, M=8 | softcomp | Brier(10) | 200 | 0.27265 | 0.00556 | 0.27500 | -0.00235 |
+| I | beta=0.4055, M=8 | softcomp | Brier(10) | 200 | 0.26981 | 0.00635 | 0.27000 | -0.00019 |
+| I | beta=0.6931, M=8 | softcomp | Brier(10) | 200 | 0.26222 | 0.00760 | 0.26200 | +0.00022 |
+| I | beta=0, M=4 | joint | Brier(10) | 200 | 0.24315 | 0.00305 | 0.24300 | +0.00015 |
+| I | beta=0.4055, M=4 | joint | Brier(10) | 200 | 0.23059 | 0.00278 | 0.23100 | -0.00041 |
+| I | beta=0.6931, M=4 | joint | Brier(10) | 200 | 0.20818 | 0.00249 | 0.20800 | +0.00018 |
+| I | beta=0, M=0 | cox | Brier(10) | 200 | 0.24119 | 0.00214 | 0.24100 | +0.00019 |
+| I | beta=0.4055, M=0 | cox | Brier(10) | 200 | 0.22880 | 0.00198 | 0.22900 | -0.00020 |
+| I | beta=0.6931, M=0 | cox | Brier(10) | 200 | 0.20644 | 0.00173 | 0.20600 | +0.00044 |
+| I | beta=0, M=0 | oracle | Brier(10) | 1 | 0.23932 | 0.00000 | 0.23900 | +0.00032 |
+| I | beta=0.4055, M=0 | oracle | Brier(10) | 1 | 0.22704 | 0.00000 | 0.22700 | +0.00004 |
+| I | beta=0.6931, M=0 | oracle | Brier(10) | 1 | 0.20495 | 0.00000 | 0.20500 | -0.00005 |
+| I | beta=0, M=0 | null | Brier(10) | 200 | 0.24065 | 0.00200 | 0.24100 | -0.00035 |
+| I | beta=0.4055, M=0 | null | Brier(10) | 200 | 0.24302 | 0.00209 | 0.24300 | +0.00002 |
+| I | beta=0.6931, M=0 | null | Brier(10) | 200 | 0.24572 | 0.00204 | 0.24600 | -0.00028 |
+| II | case=2, censored | JointSoftComp | MSE_overall | 10 | 2.27997 | 0.14922 | 2.10000 | +0.17997 |
+| II | case=2, censored | JointSoftComp | Ctd_overall | 10 | 0.74985 | 0.01165 | 0.75000 | -0.00015 |
+| II | case=2, censored | JointSoftComp | IBS_overall | 10 | 0.06199 | 0.00275 | 0.05200 | +0.00999 |
+| II | case=2, uncensored | JointSoftComp | MSE_overall | 10 | 1.71899 | 0.13067 | 1.65000 | +0.06899 |
+| II | case=2, uncensored | JointSoftComp | Ctd_overall | 10 | 0.73958 | 0.00960 | 0.74000 | -0.00042 |
+| II | case=2, uncensored | JointSoftComp | IBS_overall | 10 | 0.06105 | 0.00288 | 0.05200 | +0.00905 |
+| II | case=2, censored | SoftComp | MSE_overall | 10 | 8.12088 | 0.41569 | 8.20000 | -0.07912 |
+| II | case=2, censored | SoftComp | Ctd_overall | 10 | 0.74962 | 0.00957 | 0.75000 | -0.00038 |
+| II | case=2, censored | SoftComp | IBS_overall | 10 | 0.06592 | 0.00261 | 0.05600 | +0.00992 |
+| II | case=2, uncensored | SoftComp | MSE_overall | 10 | 14.29026 | 0.38688 | 15.10000 | -0.80974 |
+| II | case=2, uncensored | SoftComp | Ctd_overall | 10 | 0.73883 | 0.00983 | 0.73900 | -0.00017 |
+| II | case=2, uncensored | SoftComp | IBS_overall | 10 | 0.06970 | 0.00334 | 0.06100 | +0.00870 |
+| II | case=2, censored | SoftComp-noaug | MSE_overall | 10 | 20.33094 | 0.93975 | 21.48000 | -1.14906 |
+| II | case=2, censored | SoftComp-noaug | Ctd_overall | 10 | 0.74669 | 0.00929 | 0.74700 | -0.00031 |
+| II | case=2, censored | SoftComp-noaug | IBS_overall | 10 | 0.07599 | 0.00264 | 0.06800 | +0.00799 |
+| II | case=2, uncensored | SoftComp-noaug | MSE_overall | 10 | 59.49233 | 2.44399 | 65.22000 | -5.72767 |
+| II | case=2, uncensored | SoftComp-noaug | Ctd_overall | 10 | 0.72066 | 0.01061 | 0.72100 | -0.00034 |
+| II | case=2, uncensored | SoftComp-noaug | IBS_overall | 10 | 0.14650 | 0.00360 | 0.14700 | -0.00050 |
+| II | case=2, censored | NeuralFG | MSE_overall | 10 | 5.58217 | 1.27084 | 4.89000 | +0.69217 |
+| II | case=2, censored | NeuralFG | Ctd_overall | 10 | 0.72630 | 0.01064 | 0.72900 | -0.00270 |
+| II | case=2, censored | NeuralFG | IBS_overall | 10 | 0.06388 | 0.00197 | 0.05400 | +0.00988 |
+| II | case=2, uncensored | NeuralFG | MSE_overall | 10 | 3.35189 | 0.55832 | 2.98000 | +0.37189 |
+| II | case=2, uncensored | NeuralFG | Ctd_overall | 10 | 0.73197 | 0.01041 | 0.73200 | -0.00003 |
+| II | case=2, uncensored | NeuralFG | IBS_overall | 10 | 0.06194 | 0.00290 | 0.05200 | +0.00994 |
+| II | case=3, censored | JointSoftComp | MSE_overall | 10 | 1.12158 | 0.25741 | 1.13000 | -0.00842 |
+| II | case=3, censored | JointSoftComp | Ctd_overall | 10 | 0.68092 | 0.00797 | 0.68100 | -0.00008 |
+| II | case=3, censored | JointSoftComp | IBS_overall | 10 | 0.12351 | 0.00268 | 0.12300 | +0.00051 |
+| II | case=3, uncensored | JointSoftComp | MSE_overall | 10 | 0.81422 | 0.10804 | 0.82000 | -0.00578 |
+| II | case=3, uncensored | JointSoftComp | Ctd_overall | 10 | 0.67764 | 0.00514 | 0.67800 | -0.00036 |
+| II | case=3, uncensored | JointSoftComp | IBS_overall | 10 | 0.12132 | 0.00200 | 0.12100 | +0.00032 |
+| II | case=3, censored | SoftComp | MSE_overall | 10 | 3.20485 | 0.41139 | 3.20000 | +0.00485 |
+| II | case=3, censored | SoftComp | Ctd_overall | 10 | 0.68657 | 0.00807 | 0.68700 | -0.00043 |
+| II | case=3, censored | SoftComp | IBS_overall | 10 | 0.12728 | 0.00210 | 0.12700 | +0.00028 |
+| II | case=3, uncensored | SoftComp | MSE_overall | 10 | 4.30554 | 0.14678 | 4.30000 | +0.00554 |
+| II | case=3, uncensored | SoftComp | Ctd_overall | 10 | 0.67818 | 0.00558 | 0.67800 | +0.00018 |
+| II | case=3, uncensored | SoftComp | IBS_overall | 10 | 0.12349 | 0.00183 | 0.12300 | +0.00049 |
+| II | case=3, censored | SoftComp-noaug | MSE_overall | 10 | 9.21546 | 0.60027 | 9.22000 | -0.00454 |
+| II | case=3, censored | SoftComp-noaug | Ctd_overall | 10 | 0.68250 | 0.00775 | 0.68200 | +0.00050 |
+| II | case=3, censored | SoftComp-noaug | IBS_overall | 10 | 0.12884 | 0.00219 | 0.12900 | -0.00016 |
+| II | case=3, uncensored | SoftComp-noaug | MSE_overall | 10 | 61.14050 | 2.38280 | 61.07000 | +0.07050 |
+| II | case=3, uncensored | SoftComp-noaug | Ctd_overall | 10 | 0.66898 | 0.00567 | 0.66900 | -0.00002 |
+| II | case=3, uncensored | SoftComp-noaug | IBS_overall | 10 | 0.16176 | 0.00151 | 0.16200 | -0.00024 |
+| II | case=3, censored | NeuralFG | MSE_overall | 10 | 3.44394 | 0.49823 | 3.36000 | +0.08394 |
+| II | case=3, censored | NeuralFG | Ctd_overall | 10 | 0.65278 | 0.01224 | 0.64900 | +0.00378 |
+| II | case=3, censored | NeuralFG | IBS_overall | 10 | 0.12660 | 0.00243 | 0.12700 | -0.00040 |
+| II | case=3, uncensored | NeuralFG | MSE_overall | 10 | 2.24467 | 0.25165 | 2.17000 | +0.07467 |
+| II | case=3, uncensored | NeuralFG | Ctd_overall | 10 | 0.66065 | 0.00666 | 0.66100 | -0.00035 |
+| II | case=3, uncensored | NeuralFG | IBS_overall | 10 | 0.12352 | 0.00221 | 0.12300 | +0.00052 |
+| III | case3, rho=0 | softcomp | MSE_overall | 5 | 5.96943 | 0.18230 | 5.97000 | -0.00057 |
+| III | case3, rho=0 | softcomp | Ctd_overall | 5 | 0.68289 | 0.00490 | 0.68300 | -0.00011 |
+| III | case3, rho=0 | softcomp | IBS_overall | 5 | 0.13098 | 0.00210 | 0.13100 | -0.00002 |
+| III | case3, rho=0 | joint | MSE_overall | 5 | 1.00793 | 0.17672 | 1.04000 | -0.03207 |
+| III | case3, rho=0 | joint | Ctd_overall | 5 | 0.68437 | 0.00537 | 0.68400 | +0.00037 |
+| III | case3, rho=0 | joint | IBS_overall | 5 | 0.12607 | 0.00212 | 0.12600 | +0.00007 |
+| III | case3, rho=0.2 | softcomp | MSE_overall | 5 | 6.99705 | 0.39149 | 7.03000 | -0.03295 |
+| III | case3, rho=0.2 | softcomp | Ctd_overall | 5 | 0.68349 | 0.00460 | 0.68300 | +0.00049 |
+| III | case3, rho=0.2 | softcomp | IBS_overall | 5 | 0.13199 | 0.00191 | 0.13200 | -0.00001 |
+| III | case3, rho=0.2 | joint | MSE_overall | 5 | 1.19684 | 0.19176 | 1.22000 | -0.02316 |
+| III | case3, rho=0.2 | joint | Ctd_overall | 5 | 0.68516 | 0.00462 | 0.68500 | +0.00016 |
+| III | case3, rho=0.2 | joint | IBS_overall | 5 | 0.12614 | 0.00232 | 0.12600 | +0.00014 |
+| III | case3, rho=0.5 | softcomp | MSE_overall | 5 | 11.05370 | 0.21397 | 11.03000 | +0.02370 |
+| III | case3, rho=0.5 | softcomp | Ctd_overall | 5 | 0.68502 | 0.00791 | 0.68600 | -0.00098 |
+| III | case3, rho=0.5 | softcomp | IBS_overall | 5 | 0.13595 | 0.00255 | 0.13600 | -0.00005 |
+| III | case3, rho=0.5 | joint | MSE_overall | 5 | 1.72818 | 0.28703 | 1.76000 | -0.03182 |
+| III | case3, rho=0.5 | joint | Ctd_overall | 5 | 0.68215 | 0.00680 | 0.68200 | +0.00015 |
+| III | case3, rho=0.5 | joint | IBS_overall | 5 | 0.12658 | 0.00255 | 0.12700 | -0.00042 |
+| III | case3, rho=0.8 | softcomp | MSE_overall | 5 | 25.82910 | 4.87340 | 25.81000 | +0.01910 |
+| III | case3, rho=0.8 | softcomp | Ctd_overall | 5 | 0.67358 | 0.00765 | 0.67400 | -0.00042 |
+| III | case3, rho=0.8 | softcomp | IBS_overall | 5 | 0.15115 | 0.00712 | 0.15100 | +0.00015 |
+| III | case3, rho=0.8 | joint | MSE_overall | 5 | 6.06995 | 0.92103 | 6.06000 | +0.00995 |
+| III | case3, rho=0.8 | joint | Ctd_overall | 5 | 0.67609 | 0.00828 | 0.67600 | +0.00009 |
+| III | case3, rho=0.8 | joint | IBS_overall | 5 | 0.13109 | 0.00237 | 0.13100 | +0.00009 |
+| III | depcens, rho=0.2 | softcomp | MSE_overall | 5 | 7.44718 | 0.30466 | 7.45000 | -0.00282 |
+| III | depcens, rho=0.2 | softcomp | Ctd_overall | 5 | 0.67489 | 0.00432 | 0.67500 | -0.00011 |
+| III | depcens, rho=0.2 | softcomp | IBS_overall | 5 | 0.13234 | 0.00202 | 0.13200 | +0.00034 |
+| III | depcens, rho=0.2 | joint | MSE_overall | 5 | 1.35675 | 0.20048 | 1.33000 | +0.02675 |
+| III | depcens, rho=0.2 | joint | Ctd_overall | 5 | 0.68425 | 0.00513 | 0.68500 | -0.00075 |
+| III | depcens, rho=0.2 | joint | IBS_overall | 5 | 0.12644 | 0.00220 | 0.12600 | +0.00044 |
+| III | depcens, rho=0.5 | softcomp | MSE_overall | 5 | 13.10071 | 1.58229 | 13.17000 | -0.06929 |
+| III | depcens, rho=0.5 | softcomp | Ctd_overall | 5 | 0.65431 | 0.00351 | 0.65400 | +0.00031 |
+| III | depcens, rho=0.5 | softcomp | IBS_overall | 5 | 0.13818 | 0.00242 | 0.13800 | +0.00018 |
+| III | depcens, rho=0.5 | joint | MSE_overall | 5 | 2.31930 | 0.38852 | 2.30000 | +0.01930 |
+| III | depcens, rho=0.5 | joint | Ctd_overall | 5 | 0.68115 | 0.00486 | 0.68100 | +0.00015 |
+| III | depcens, rho=0.5 | joint | IBS_overall | 5 | 0.12716 | 0.00251 | 0.12700 | +0.00016 |
+| III | depcens, rho=0.8 | softcomp | MSE_overall | 5 | 27.75230 | 2.69597 | 27.83000 | -0.07770 |
+| III | depcens, rho=0.8 | softcomp | Ctd_overall | 5 | 0.59381 | 0.02425 | 0.59400 | -0.00019 |
+| III | depcens, rho=0.8 | softcomp | IBS_overall | 5 | 0.15307 | 0.00409 | 0.15300 | +0.00007 |
+| III | depcens, rho=0.8 | joint | MSE_overall | 5 | 8.18772 | 2.61443 | 8.41000 | -0.22228 |
+| III | depcens, rho=0.8 | joint | Ctd_overall | 5 | 0.66806 | 0.00996 | 0.66700 | +0.00106 |
+| III | depcens, rho=0.8 | joint | IBS_overall | 5 | 0.13272 | 0.00304 | 0.13300 | -0.00028 |
+| III | constant, rho=0 | softcomp | MSE_overall | 5 | 7.22879 | 0.17811 | 7.23000 | -0.00121 |
+| III | constant, rho=0 | softcomp | Ctd_overall | 5 | 0.66525 | 0.00620 | 0.66500 | +0.00025 |
+| III | constant, rho=0 | softcomp | IBS_overall | 5 | 0.14933 | 0.00211 | 0.14900 | +0.00033 |
+| III | constant, rho=0 | joint | MSE_overall | 5 | 0.62458 | 0.18076 | 0.62000 | +0.00458 |
+| III | constant, rho=0 | joint | Ctd_overall | 5 | 0.66816 | 0.00206 | 0.66800 | +0.00016 |
+| III | constant, rho=0 | joint | IBS_overall | 5 | 0.14292 | 0.00184 | 0.14300 | -0.00008 |
+| III | constant, rho=0.2 | softcomp | MSE_overall | 5 | 11.35412 | 0.65628 | 11.34000 | +0.01412 |
+| III | constant, rho=0.2 | softcomp | Ctd_overall | 5 | 0.66738 | 0.00564 | 0.66700 | +0.00038 |
+| III | constant, rho=0.2 | softcomp | IBS_overall | 5 | 0.15353 | 0.00221 | 0.15400 | -0.00047 |
+| III | constant, rho=0.2 | joint | MSE_overall | 5 | 0.66979 | 0.10316 | 0.68000 | -0.01021 |
+| III | constant, rho=0.2 | joint | Ctd_overall | 5 | 0.66629 | 0.00325 | 0.66600 | +0.00029 |
+| III | constant, rho=0.2 | joint | IBS_overall | 5 | 0.14322 | 0.00167 | 0.14300 | +0.00022 |
+| III | constant, rho=0.5 | softcomp | MSE_overall | 5 | 20.93118 | 1.87874 | 20.94000 | -0.00882 |
+| III | constant, rho=0.5 | softcomp | Ctd_overall | 5 | 0.66902 | 0.00529 | 0.66900 | +0.00002 |
+| III | constant, rho=0.5 | softcomp | IBS_overall | 5 | 0.16313 | 0.00265 | 0.16300 | +0.00013 |
+| III | constant, rho=0.5 | joint | MSE_overall | 5 | 1.21346 | 0.27562 | 1.18000 | +0.03346 |
+| III | constant, rho=0.5 | joint | Ctd_overall | 5 | 0.66612 | 0.00314 | 0.66600 | +0.00012 |
+| III | constant, rho=0.5 | joint | IBS_overall | 5 | 0.14387 | 0.00188 | 0.14400 | -0.00013 |
+| III | constant, rho=0.8 | softcomp | MSE_overall | 5 | 48.24080 | 6.35246 | 48.29000 | -0.04920 |
+| III | constant, rho=0.8 | softcomp | Ctd_overall | 5 | 0.66669 | 0.00391 | 0.66700 | -0.00031 |
+| III | constant, rho=0.8 | softcomp | IBS_overall | 5 | 0.19037 | 0.00820 | 0.19000 | +0.00037 |
+| III | constant, rho=0.8 | joint | MSE_overall | 5 | 10.03252 | 1.77165 | 9.86000 | +0.17252 |
+| III | constant, rho=0.8 | joint | Ctd_overall | 5 | 0.65853 | 0.00538 | 0.65900 | -0.00047 |
+| III | constant, rho=0.8 | joint | IBS_overall | 5 | 0.15338 | 0.00199 | 0.15300 | +0.00038 |

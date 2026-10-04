@@ -1,0 +1,24 @@
+{
+  "name": "depcens_rho0.5_softcomp_seed2",
+  "pid": 64114,
+  "started": 1791073810.784079,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.censoring_levels import main; main()",
+    "depcens",
+    "--method",
+    "softcomp",
+    "--rho",
+    "0.5",
+    "--seed",
+    "2",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring/depcens_rho0.5_softcomp_seed2.json",
+  "returncode": 0,
+  "seconds": 36.121402978897095
+}

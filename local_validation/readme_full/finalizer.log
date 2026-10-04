@@ -1,0 +1,24 @@
+Compared 141 reported means
+{
+  "complete": true,
+  "checked_at": 1791077367.148588,
+  "counts": {
+    "censoring_levels": 118,
+    "simple": 600,
+    "uncensored": 160
+  },
+  "failures": [],
+  "invalid": [],
+  "all_floats_finite": true,
+  "source_changes": {
+    "main": [
+      "experiments/joint_softcomp/analyze_simple.py",
+      "experiments/joint_softcomp/uncensored.py"
+    ],
+    "uncensored": [
+      "experiments/joint_softcomp/analyze_simple.py"
+    ]
+  }
+}
+pending 0
+Wrote RESULTS.txt

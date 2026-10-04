@@ -214,7 +214,7 @@ def main() -> None:
         type=str,
         default="all",
         choices=["all", "A", "B", "B2", "C", "D", "E", "F", "G"],
-
+        help="A=baseline replay, B=Brier sweep, B2=heavier Brier + (M,lam), C=ensemble of best, D=arch/epoch sweep, E=baseline-anchored Ctd push, F=heterogeneous ensemble blend, G=single-seed epoch convergence (seed=42, M=8 brier=5 + variants)",
     )
     args = p.parse_args()
     shard_i, shard_n = (int(x) for x in args.shard.split("/"))

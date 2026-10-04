@@ -1,0 +1,32 @@
+{
+  "complete": true,
+  "checked_at": 1791077367.148588,
+  "counts": {
+    "censoring_levels": 118,
+    "simple": 600,
+    "uncensored": 160
+  },
+  "pending": [],
+  "failures": [],
+  "invalid": [],
+  "all_floats_finite": true,
+  "source_changes": {
+    "main": [
+      "experiments/joint_softcomp/analyze_simple.py",
+      "experiments/joint_softcomp/uncensored.py"
+    ],
+    "uncensored": [
+      "experiments/joint_softcomp/analyze_simple.py"
+    ]
+  },
+  "summaries_complete": true,
+  "artifact_sha256": {
+    "RESULTS.txt": "e17c0e685148a418296ce5106fb2119753526c08a5ab162d25457bf900fc84f7",
+    "readme_comparison.json": "0539b0729928294fcca73293f4817f50f6cc58fdcaed1c967b994c7c25db03d0",
+    "readme_comparison.txt": "f434ec917c426514124894d317d5add477da50e18b5ca1f56a0983722021f006",
+    "simple_summary.txt": "481f23f854d4de1b0b6bd2a2513fb87cfb64dac96fa66baa1cd5c395a69f0c75",
+    "uncensored_summary.txt": "b2b103a3ee73643b248082275150da33d1de598155d32a29027edb5596da379e",
+    "censoring_summary.txt": "ac2b743ee23b1d0a8d79d1d64c8b4f090318070d894e361842705e2cccd620ea",
+    "population_targets.txt": "8067bc544ea04b29a041a9f3dedafaceea8cd67bfe9d14b36b7999e33d0f0220"
+  }
+}

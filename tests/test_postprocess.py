@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import later.unittest
+import unittest
 import torch
 
 from ..evaluation.postprocess import enforce_cif_simplex
 
 
-class PostprocessTest(later.unittest.TestCase):
+class PostprocessTest(unittest.TestCase):
     def test_simplex_scaling_preserves_monotonicity(self) -> None:
         cif = torch.tensor(
             [

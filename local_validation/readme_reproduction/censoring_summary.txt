@@ -1,0 +1,30 @@
+aj-check rho=0.0 joint    max|fit-AJ|=0.0145 max|fit-truth|=0.0117 max|AJ-truth|=0.0069
+aj-check rho=0.0 softcomp max|fit-AJ|=0.1017 max|fit-truth|=0.1022 max|AJ-truth|=0.0069
+aj-check rho=0.2 joint    max|fit-AJ|=0.0112 max|fit-truth|=0.0081 max|AJ-truth|=0.0057
+aj-check rho=0.2 softcomp max|fit-AJ|=0.1154 max|fit-truth|=0.1148 max|AJ-truth|=0.0057
+aj-check rho=0.5 joint    max|fit-AJ|=0.0195 max|fit-truth|=0.0206 max|AJ-truth|=0.0092
+aj-check rho=0.5 softcomp max|fit-AJ|=0.1504 max|fit-truth|=0.1507 max|AJ-truth|=0.0092
+aj-check rho=0.8 joint    max|fit-AJ|=0.0761 max|fit-truth|=0.0748 max|AJ-truth|=0.0359
+aj-check rho=0.8 softcomp max|fit-AJ|=0.2089 max|fit-truth|=0.1878 max|AJ-truth|=0.0359
+case3    rho=0.0 joint    n=2 cens<tau=0.00 MSE=0.00105 Ctd=0.6792 IBS=0.1276 bias@t10=[-0.005, -0.008, 0.001] bias@t20=[-0.001, -0.001, -0.001]
+case3    rho=0.0 softcomp n=2 cens<tau=0.00 MSE=0.00578 Ctd=0.6787 IBS=0.1322 bias@t10=[0.011, 0.01, 0.004] bias@t20=[-0.093, -0.097, -0.102]
+case3    rho=0.2 joint    n=2 cens<tau=0.20 MSE=0.00123 Ctd=0.6812 IBS=0.1277 bias@t10=[-0.004, -0.009, -0.0] bias@t20=[-0.001, 0.001, 0.004]
+case3    rho=0.2 softcomp n=2 cens<tau=0.20 MSE=0.00659 Ctd=0.6807 IBS=0.1329 bias@t10=[-0.01, -0.014, -0.016] bias@t20=[-0.111, -0.118, -0.121]
+case3    rho=0.5 joint    n=2 cens<tau=0.50 MSE=0.00176 Ctd=0.6763 IBS=0.1283 bias@t10=[-0.003, -0.008, 0.002] bias@t20=[-0.015, -0.009, 0.01]
+case3    rho=0.5 softcomp n=2 cens<tau=0.50 MSE=0.01109 Ctd=0.6787 IBS=0.1375 bias@t10=[-0.047, -0.059, -0.048] bias@t20=[-0.137, -0.154, -0.139]
+case3    rho=0.8 joint    n=2 cens<tau=0.80 MSE=0.00551 Ctd=0.6677 IBS=0.1316 bias@t10=[-0.002, 0.001, 0.015] bias@t20=[-0.054, -0.035, -0.026]
+case3    rho=0.8 softcomp n=2 cens<tau=0.80 MSE=0.02528 Ctd=0.6722 IBS=0.1518 bias@t10=[-0.099, -0.11, -0.112] bias@t20=[-0.168, -0.203, -0.195]
+constant rho=0.0 joint    n=2 cens<tau=0.00 MSE=0.00074 Ctd=0.6672 IBS=0.1419 bias@t10=[-0.01, 0.001, -0.005] bias@t20=[0.0, 0.001, -0.001]
+constant rho=0.0 softcomp n=2 cens<tau=0.00 MSE=0.00714 Ctd=0.6611 IBS=0.1480 bias@t10=[-0.066, -0.05, -0.039] bias@t20=[-0.148, -0.107, -0.09]
+constant rho=0.2 joint    n=2 cens<tau=0.20 MSE=0.00071 Ctd=0.6649 IBS=0.1424 bias@t10=[-0.009, 0.001, -0.006] bias@t20=[-0.001, 0.002, 0.001]
+constant rho=0.2 softcomp n=2 cens<tau=0.20 MSE=0.01104 Ctd=0.6638 IBS=0.1515 bias@t10=[-0.103, -0.073, -0.06] bias@t20=[-0.185, -0.13, -0.11]
+constant rho=0.5 joint    n=2 cens<tau=0.50 MSE=0.00143 Ctd=0.6644 IBS=0.1432 bias@t10=[-0.014, 0.002, -0.007] bias@t20=[-0.013, 0.002, -0.035]
+constant rho=0.5 softcomp n=2 cens<tau=0.50 MSE=0.02120 Ctd=0.6649 IBS=0.1610 bias@t10=[-0.158, -0.116, -0.099] bias@t20=[-0.237, -0.169, -0.149]
+constant rho=0.8 joint    n=2 cens<tau=0.80 MSE=0.01055 Ctd=0.6560 IBS=0.1536 bias@t10=[-0.028, 0.036, -0.061] bias@t20=[-0.11, -0.018, -0.112]
+constant rho=0.8 softcomp n=2 cens<tau=0.80 MSE=0.04491 Ctd=0.6653 IBS=0.1844 bias@t10=[-0.236, -0.173, -0.153] bias@t20=[-0.318, -0.23, -0.203]
+depcens  rho=0.2 joint    n=2 cens<tau=0.20 MSE=0.00143 Ctd=0.6794 IBS=0.1281 bias@t10=[-0.005, -0.009, 0.001] bias@t20=[0.0, -0.004, 0.004]
+depcens  rho=0.2 softcomp n=2 cens<tau=0.20 MSE=0.00723 Ctd=0.6703 IBS=0.1335 bias@t10=[-0.012, -0.013, -0.017] bias@t20=[-0.115, -0.118, -0.121]
+depcens  rho=0.5 joint    n=2 cens<tau=0.50 MSE=0.00213 Ctd=0.6772 IBS=0.1286 bias@t10=[-0.006, -0.011, 0.007] bias@t20=[-0.003, -0.017, 0.011]
+depcens  rho=0.5 softcomp n=2 cens<tau=0.50 MSE=0.01160 Ctd=0.6516 IBS=0.1381 bias@t10=[-0.048, -0.059, -0.047] bias@t20=[-0.136, -0.156, -0.141]
+depcens  rho=0.8 joint    n=2 cens<tau=0.80 MSE=0.00751 Ctd=0.6601 IBS=0.1335 bias@t10=[0.012, -0.007, 0.002] bias@t20=[-0.019, -0.006, 0.017]
+depcens  rho=0.8 softcomp n=2 cens<tau=0.80 MSE=0.02792 Ctd=0.5781 IBS=0.1545 bias@t10=[-0.11, -0.11, -0.119] bias@t20=[-0.19, -0.197, -0.206]

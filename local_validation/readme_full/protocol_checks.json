@@ -1,0 +1,30 @@
+[
+  {
+    "case": 2,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 100,
+    "grid_max": 21.615249633789062
+  },
+  {
+    "case": 3,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_grid": 104,
+    "grid_max": 18.0
+  }
+]

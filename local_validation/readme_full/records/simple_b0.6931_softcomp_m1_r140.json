@@ -1,0 +1,26 @@
+{
+  "name": "simple_b0.6931_softcomp_m1_r140",
+  "pid": 73198,
+  "started": 1791076706.033988,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.simple import main; main()",
+    "softcomp",
+    "--beta",
+    "0.6931471806",
+    "--m",
+    "1",
+    "--rep-start",
+    "140",
+    "--reps",
+    "10",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/simple/simple_b0.6931_softcomp_m1_r140.json",
+  "returncode": 0,
+  "seconds": 15.978453159332275
+}

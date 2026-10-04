@@ -1,0 +1,24 @@
+{
+  "name": "depcens_rho0.5_joint_seed0",
+  "pid": 64246,
+  "started": 1791073893.5397062,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.censoring_levels import main; main()",
+    "depcens",
+    "--method",
+    "joint",
+    "--rho",
+    "0.5",
+    "--seed",
+    "0",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring/depcens_rho0.5_joint_seed0.json",
+  "returncode": 0,
+  "seconds": 26.301490783691406
+}

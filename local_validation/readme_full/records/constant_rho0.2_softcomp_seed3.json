@@ -1,0 +1,24 @@
+{
+  "name": "constant_rho0.2_softcomp_seed3",
+  "pid": 63750,
+  "started": 1791073567.956504,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.censoring_levels import main; main()",
+    "constant",
+    "--method",
+    "softcomp",
+    "--rho",
+    "0.2",
+    "--seed",
+    "3",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censoring/constant_rho0.2_softcomp_seed3.json",
+  "returncode": 0,
+  "seconds": 36.12895894050598
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import later.unittest
+import unittest
 import torch
 
 from ..data.case2_v3 import (
@@ -11,7 +11,7 @@ from ..data.case2_v3 import (
 )
 
 
-class Case2V3Test(later.unittest.TestCase):
+class Case2V3Test(unittest.TestCase):
     def test_cif_is_monotone_and_probability_coherent(self) -> None:
         params = generate_parameters()
         generator = torch.Generator().manual_seed(123)

@@ -2,7 +2,7 @@
 
 import math
 
-import later.unittest
+import unittest
 import numpy as np
 import pandas as pd
 import torch
@@ -15,7 +15,7 @@ class _ConstantPartialHazardModel:
         return pd.Series(np.zeros(len(data), dtype=np.float64))
 
 
-class CsCoxTest(later.unittest.TestCase):
+class CsCoxTest(unittest.TestCase):
     def test_predictions_are_probability_coherent(self) -> None:
         model = CsCox(n_causes=2)
         model.models = [_ConstantPartialHazardModel(), _ConstantPartialHazardModel()]

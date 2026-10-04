@@ -1,0 +1,53 @@
+{
+  "verified_at": 1791077481.087002,
+  "objective": "Run all three README experiments to results with required local dependencies and fixes",
+  "experiment_I": {
+    "status": "complete",
+    "cells": 30,
+    "repetitions_per_cell": 200,
+    "files": 600,
+    "summary": "simple_summary.txt"
+  },
+  "experiment_II": {
+    "status": "complete",
+    "cells": 16,
+    "repetitions_per_cell": 10,
+    "files": 160,
+    "paired_data_checks": 20,
+    "summary": "uncensored_summary.txt"
+  },
+  "experiment_III": {
+    "status": "complete",
+    "simulation_cells": 22,
+    "repetitions_per_cell": 5,
+    "aj_checks": 8,
+    "files": 118,
+    "summary": "censoring_summary.txt"
+  },
+  "theory_table": {
+    "status": "complete",
+    "file": "population_targets.txt"
+  },
+  "results_audit": "audit.json",
+  "readme_comparison": {
+    "rows": 141,
+    "file": "readme_comparison.txt"
+  },
+  "tests": {
+    "existing_passed": 102,
+    "reproduction_regressions_passed": 2,
+    "unloadable_out_of_scope_modules": [
+      "test_case1_v3_formal",
+      "test_case1_v3_softcomp"
+    ],
+    "missing_module": "experiments.case1_v3"
+  },
+  "limitations": [
+    "Original server dependency versions unavailable; local versions locked in requirements.lock.txt.",
+    "Case II supplementary grid uses 97.5% rather than original formal-code 90%; no fixed Case II times supplied.",
+    "C_td retains supplied Antolini estimator; only IBS uses IPCW, despite inconsistent README prose.",
+    "Numerical results are local measurements, not a claim of exact equality to README tables."
+  ],
+  "workers": "Both experiment drivers and finalizer exited; no failed tasks remain",
+  "git": "Results and this run fixes remain local; no new push; Chinese README remains untracked"
+}

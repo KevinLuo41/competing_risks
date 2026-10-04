@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-import later.unittest
+import unittest
 import torch
 
 from ..experiments.case1_v3.formal import (
@@ -159,7 +159,7 @@ def _force_cscox_to_ctd_rank_one(
             metrics[replicate][method]["Ctd_overall"] = value
 
 
-class Case1V3FormalTest(later.unittest.TestCase):
+class Case1V3FormalTest(unittest.TestCase):
     def test_frozen_schedules_use_all_six_models_and_share_a_hash(self) -> None:
         development = build_config(_args("development"))
         formal = build_config(_args("formal"))

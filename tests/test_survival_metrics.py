@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import later.unittest
+import unittest
 import torch
 
 from ..evaluation.survival import compute_ctd, compute_ibs
 
 
-class SurvivalMetricsTest(later.unittest.TestCase):
+class SurvivalMetricsTest(unittest.TestCase):
     def test_ctd_counts_concordance_and_ties(self) -> None:
         y_test = torch.tensor([1.0, 2.0, 3.0])
         delta_test = torch.tensor([1, 0, 2])

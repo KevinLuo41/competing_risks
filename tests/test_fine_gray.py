@@ -2,7 +2,7 @@
 
 import math
 
-import later.unittest
+import unittest
 import numpy as np
 import torch
 
@@ -10,7 +10,7 @@ from ..baseline_models import FineGray
 from ..data import case2_v3
 
 
-class FineGrayTest(later.unittest.TestCase):
+class FineGrayTest(unittest.TestCase):
     def setUp(self) -> None:
         self.x = torch.zeros(5, 1)
         self.times = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0])

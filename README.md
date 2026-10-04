@@ -14,130 +14,232 @@ A shared neural network outputs K logits. A zero is prepended for the survival c
 
 At **inference time**, predicted CIFs are post-processed with **isotonic regression** (Pool-Adjacent-Violators) along the time axis to enforce monotonicity in `t`. The (K+1)-class softmax does not architecturally guarantee `∂F_k/∂t ≥ 0`; isotonic regression is the L2-optimal projection onto the cone of non-decreasing functions and resolves residual violations in the data-sparse tail. See `evaluation/postprocess.py`.
 
+This local checkout runs with Python. Some files and datasets from the original
+project have not yet been copied; the tree and commands below describe the files
+currently available. Historical result tables and ablation notes are retained as
+reference, not as evidence that those experiments have completed locally.
+
 ## Project Structure
 
-```
+```text
 competing_risks/
-├── crsoft_model/                  # CRSoft model
-│   ├── crsoft.py                  # CRSoftNet, BaseCRSoftNet, loss, fit, predict
-│   └── functional.py              # FunctionalCRSoftNet (functional covariates)
-├── baseline_models/               # Baseline models
-│   ├── deephit.py                 # DeepHit
-│   ├── dsm.py                     # Deep Survival Machines
-│   ├── cs_cox.py                  # Cause-specific Cox
-│   ├── fine_gray.py               # Classical Fine-Gray subdistribution hazards
-│   └── neural_fine_gray.py        # Neural Fine-Gray
-├── evaluation/                    # Evaluation & visualization
-│   ├── simulation.py              # MSE, accuracy (simulation only)
-│   ├── survival.py                # C^td, IBS (all datasets)
-│   ├── postprocess.py             # Isotonic regression for CIF monotonicity
-│   ├── checkpoints.py             # Per-model save/load
-│   └── visualize.py               # Plots
-├── data/                          # Data generation & loading
-│   ├── utils.py                   # Shared utilities
-│   ├── case1.py, case2.py         # Earlier simulation generators
-│   ├── case3_v4.py                # Current Case III folded-index DGP
-│   ├── case3.py, case3_interaction.py  # Historical Case III generators
-│   ├── pbc.py, framingham.py      # Real-world dataset loaders
-│   └── synthetic.py               # DeepHit synthetic dataset loader
-├── experiments/                   # One run.py per dataset, all models
-│   ├── runner.py                  # Shared scaffolding: ModelSpec, CLI, two-tier cache runner
-│   ├── case1/run.py               # 5 models + MSE/Acc/IBS/C^td + viz
-│   ├── case2/run.py               # 5 models + MSE/Acc/IBS/C^td + viz
-│   ├── case3_v4/                  # Current six-method Case III protocol
-│   │   ├── run.py                  # Shared data/model configuration
-│   │   ├── formal.py               # Development gate + formal 50 runner
-│   │   └── plot_cif_uncertainty.py  # Fixed-cohort uncertainty plot
-│   ├── case3/run.py               # Historical functional CRSoft-only study
-│   ├── case3_v2/run.py            # Historical five-method interaction study
-│   ├── pbc/run.py                 # 6 models + IBS/C^td/Dist/ACO
-│   ├── framingham/run.py          # 6 models + IBS/C^td/Dist/ACO
-│   └── synthetic/run.py           # 6 models + IBS/C^td/Dist/ACO
-└── BUCK                           # Build targets
+├── .gitignore
+├── README.md
+├── baseline_models/
+│   ├── __init__.py
+│   ├── cs_cox.py
+│   ├── deephit.py
+│   ├── dsm.py
+│   ├── fine_gray.py
+│   └── neural_fine_gray.py
+├── crsoft_model/
+│   ├── __init__.py
+│   ├── crsoft.py
+│   ├── functional.py
+│   └── joint_softcomp.py
+├── data/
+│   ├── __init__.py
+│   ├── case1.py
+│   ├── case1_v3.py
+│   ├── case2.py
+│   ├── case2_v3.py
+│   ├── case2_v4.py
+│   ├── case3.py
+│   ├── case3_interaction.py
+│   ├── case3_v4.py
+│   ├── case3_v5.py
+│   ├── synthetic.py
+│   └── utils.py
+├── evaluation/
+│   ├── __init__.py
+│   ├── checkpoints.py
+│   ├── postprocess.py
+│   ├── simulation.py
+│   ├── survival.py
+│   └── visualize.py
+├── experiments/
+│   ├── case1/
+│   │   ├── __init__.py
+│   │   └── run.py
+│   ├── case1_v2/
+│   │   ├── __init__.py
+│   │   └── run.py
+│   ├── case2/
+│   │   └── run.py
+│   ├── case2_v2/
+│   │   └── run.py
+│   ├── case2_v3/
+│   │   ├── __init__.py
+│   │   ├── backfill_fine_gray.py
+│   │   ├── formal.py
+│   │   ├── plot_survival.py
+│   │   └── run.py
+│   ├── case2_v4/
+│   │   ├── __init__.py
+│   │   ├── formal.py
+│   │   ├── plot_cif_uncertainty.py
+│   │   └── run.py
+│   ├── case3/
+│   │   ├── __init__.py
+│   │   ├── run.py
+│   │   └── sweep.py
+│   ├── case3_v2/
+│   │   ├── backfill_checkpoints.py
+│   │   ├── development.py
+│   │   ├── plot_cif_uncertainty.py
+│   │   └── run.py
+│   ├── case3_v4/
+│   │   ├── __init__.py
+│   │   ├── formal.py
+│   │   ├── plot_cif_uncertainty.py
+│   │   └── run.py
+│   ├── case3_v5/
+│   │   ├── __init__.py
+│   │   ├── formal.py
+│   │   ├── plot_cif_uncertainty.py
+│   │   └── run.py
+│   ├── joint_softcomp/
+│   │   ├── README.md
+│   │   ├── __init__.py
+│   │   ├── analyze_simple.py
+│   │   ├── analyze_uncensored.py
+│   │   ├── censoring_levels.py
+│   │   ├── population_targets.py
+│   │   ├── simple.py
+│   │   └── uncensored.py
+│   ├── synthetic/
+│   │   ├── __init__.py
+│   │   ├── brier_sweep.py
+│   │   └── run.py
+│   ├── __init__.py
+│   └── runner.py
+├── tests/                         # Unit tests
+└── local_validation/              # Local experiment runners and audit artifacts
+    ├── small_experiment/
+    ├── case2_comparison_5000/
+    ├── readme_reproduction/
+    └── readme_full/
 ```
 
-> **Note**: `case1/run.py` and `case2/run.py` have been ported to the shared `runner.py` (with two-tier caching + CLI flags). Other cases still use the older inline pattern; porting them is a mechanical change documented in [§ CRSoft Hyperparameter Iteration](#crsoft-hyperparameter-iteration).
+The tree omits generated outputs, `.venv/`, `__pycache__/`, and the contents of
+`tests/` and `local_validation/`. PBC/Framingham loaders and experiment folders,
+`data/synthetic_comprisk.csv`, paper figures, and standalone experiment-plan
+documents have not yet been copied into this checkout. `experiments/case1_v3/`
+is also missing, although its data generator and tests are present.
 
 ## Running
 
-### CPU (default, used for the simulation cases and small datasets)
+### Local setup
 
-Always use `@fbcode//mode/opt` — dev mode is 5-10× slower (asan/ubsan) and the resulting `.par` is also incompatible with the on-disk output dir layout.
-
-```bash
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case1
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case2
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case_pbc
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case_framingham
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:synthetic
-```
-
-The current Case III v4 study uses a gated two-phase protocol. Run the
-development gate before starting or resuming the formal 50 paired replicates:
+Use Python 3.12 (the version used by the local validation environment). From the
+`competing_risks/` project root, create and activate a virtual environment, install
+the runtime dependencies, and make the parent directory importable:
 
 ```bash
-buck run @fbcode//mode/opt \
-  fbsource//users/ga/gaoming/competing_risks:case3_v4_formal -- \
-  --phase development --resume
-
-buck run @fbcode//mode/opt \
-  fbsource//users/ga/gaoming/competing_risks:case3_v4_formal -- \
-  --phase formal --resume
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install torch numpy pandas scipy scikit-learn matplotlib lifelines
+export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
-The older `case3` and `case3_v2` targets remain available only for historical
-reproduction; they are not part of the current Case III table or figure.
+Run the remaining commands from this directory in the same shell. The source
+uses relative imports, so use the full `competing_risks` package name. The parent
+path lets Python load this directory as a namespace package; an editable install
+is not required. There is currently no root `requirements.txt` or `pyproject.toml`.
 
-### GPU (devgpu / A100, used for the bigger sweeps)
-
-`CRSoftNet.fit()` auto-detects CUDA and uses it when available. To get an actual GPU-enabled binary on a Meta devgpu, **`@fbcode//mode/opt` is not enough on its own** — the prebuilt `caffe2:torch` shipped under that mode contains zero CUDA kernels (`torch.cuda.is_available()` returns True but the first compute op fails with `cudaErrorInvalidKernelImage`). Use this instead:
+### Run an experiment
 
 ```bash
-buck run @fbcode//mode/dev-nosan \
-  -c fbcode.enable_gpu_sections=true \
-  -c fbcode.nvcc_arch=a100 \
-  -m ovr_config//third-party/cuda/constraints:12.4 \
-  fbsource//users/ga/gaoming/competing_risks:case_pbc -- --retrain crsoft
+# Inspect the execution plan without training
+python -m competing_risks.experiments.case1.run --list
+
+# Train/load all models and evaluate
+python -m competing_risks.experiments.case1.run
+python -m competing_risks.experiments.case2.run
+
+# Six-method, K=p=3 simulations
+python -m competing_risks.experiments.case2_v4.run
+python -m competing_risks.experiments.case3_v4.run
+python -m competing_risks.experiments.case3_v5.run
 ```
 
-What each flag does:
-- `@fbcode//mode/dev-nosan` — dev build profile *without* address-sanitizer (ASAN segfaults under the CUDA driver). The wiki page [PyTorch fbcode development](https://www.internalfb.com/wiki/PyTorch/PyTorchDev/Workflow/PyTorch_environment_setup/fbcode/) is the canonical source.
-- `-c fbcode.enable_gpu_sections=true` — gates whether GPU code paths (libtorch_cuda, flash-attention, cutlass) are linked into the binary at all. Without it the build is CPU-only even though the runtime stubs are present.
-- `-c fbcode.nvcc_arch=a100` — embeds sm_80 cubins so the kernel image is valid for the A100 (devgpu reports `device cap: (8, 0)`). Use `h100` for sm_90, or `a100,h100` for both.
-- `-m ovr_config//third-party/cuda/constraints:12.4` — pins the CUDA toolchain to 12.4 so the cutlass/flash-attention sources match their headers.
+For a small Case II v4 check before a full run:
 
-Smoke test that GPU works (takes ~1 min, no training):
 ```bash
-CUDA_VISIBLE_DEVICES=0 buck run @fbcode//mode/dev-nosan \
-  -c fbcode.enable_gpu_sections=true \
-  -c fbcode.nvcc_arch=a100 \
-  -m ovr_config//third-party/cuda/constraints:12.4 \
-  fbsource//users/ga/gaoming/competing_risks:cuda_check
+python -m competing_risks.experiments.case2_v4.run \
+  --models SoftComp --n-train 100 --n-test 50 --epochs 2 --cpu-threads 1 \
+  --output /tmp/competing_risks_case2_smoke.json
 ```
 
-Expected last line: `SMOKE TEST PASSED`. If you see `arch list: []` it's a misleading PyTorch quirk — the cubins are embedded for the arch you asked for; only the JIT compile-time arch list is empty. The smoke test verifies an actual GPU compute op succeeds.
+Case III v4 uses a gated two-phase protocol. Run the development gate before
+starting or resuming the formal 50 paired replicates:
 
-Each run trains all models (or loads them from cache), evaluates, and saves results + model checkpoints + plots to `experiments/<dataset>/outputs/`.
+```bash
+python -m competing_risks.experiments.case3_v4.formal --phase development --resume
+python -m competing_risks.experiments.case3_v4.formal --phase formal --resume
+```
+
+Use `--help` on each module to inspect its own options. The older `case3` and
+`case3_v2` modules remain available for historical reproduction.
+
+### Synthetic benchmark data
+
+The loader and experiment code are present, but the required
+`data/synthetic_comprisk.csv` is not included yet. After supplying that file:
+
+```bash
+python -m competing_risks.experiments.synthetic.run
+python -m competing_risks.experiments.synthetic.brier_sweep --help
+```
+
+PBC and Framingham cannot currently be run because their loaders and experiment
+code have not been copied.
+
+### Device and output
+
+`CRSoftNet.fit()` selects CUDA when available and CPU otherwise. The current
+code does not automatically select Apple MPS; it uses CPU on a Mac without CUDA.
+To check the active environment:
+
+```bash
+python -c 'import torch; print("torch:", torch.__version__); print("CUDA:", torch.cuda.is_available())'
+```
+
+Standard runners save metrics, checkpoints, and plots under
+`experiments/<case>/outputs/`; runners with `--output` or `--output-dir` can use a
+custom destination. Full runs and formal replicate suites are much longer than
+the small check above; timings in the historical tables come from the original
+hardware.
+
+### Tests and JointSoftComp
+
+```bash
+python -m unittest competing_risks.tests.test_joint_softcomp
+```
+
+Full test discovery (`python -m unittest discover -s tests -t ..`) currently has
+two import errors: `test_case1_v3_formal.py` and `test_case1_v3_softcomp.py` depend
+on the missing `experiments/case1_v3/` modules. Restore those files before using
+the full-suite command.
+
+See [JointSoftComp: model, loss, and supplementary experiments](experiments/joint_softcomp/README.md)
+for its local setup and experiment commands.
 
 ### Classical Fine-Gray baseline
 
 `baseline_models/fine_gray.py` implements the classical proportional
-subdistribution-hazards model directly with Fine-Gray IPCW risk sets. The
-available Buck packages do not provide a native fitter: `statsmodels.PHReg`
-lacks time-varying observation weights, while `comprisk`, SurPyval, and the
-previously used `insurance-survival` package are not vendored. The implementation
-therefore solves the weighted partial likelihood with NumPy and stores only
+subdistribution-hazards model directly with Fine-Gray IPCW risk sets. The implementation solves the weighted partial likelihood with NumPy and stores only
 the fitted coefficients, baseline subdistribution hazards, and convergence
 diagnostics in checkpoints.
 
-Fine-Gray is the required sixth baseline for Case II v3. The first five methods
-completed before its implementation, so the dedicated backfill runner reuses
-the exact saved subjects, censoring, fitting/validation split, and evaluation
-grid for formal replicates 0--9. It does not retrain the first five methods:
+Fine-Gray is the required sixth baseline for Case II v3. Its dedicated backfill
+runner reuses saved subjects, censoring, fitting/validation split, and evaluation
+grid for formal replicates 0--9. Run it only after generating those artifacts
+with the Case II v3 formal runner; the original saved replicates are not included
+locally. It does not retrain the first five methods:
 
 ```bash
-buck run @fbcode//mode/opt \
-  fbsource//users/ga/gaoming/competing_risks:case2_v3_backfill_fine_gray
+python -m competing_risks.experiments.case2_v3.backfill_fine_gray
 ```
 
 The original configuration hash remains the base identity for the paired data
@@ -159,22 +261,19 @@ of the K=8 Case II v3 outputs. It uses K=p=3 and runs DeepHit, DSM, cs-Cox,
 NeuralFG, SoftComp, and Fine-Gray on the same 50 paired replicates:
 
 ```bash
-buck run @fbcode//mode/opt \
-  fbsource//users/ga/gaoming/competing_risks:case2_v4_formal -- \
-  --phase formal --resume
+python -m competing_risks.experiments.case2_v4.formal --phase development --resume
+python -m competing_risks.experiments.case2_v4.formal --phase formal --resume
 ```
 
-The formal run is complete. SoftComp's MSE/Ctd/IBS ranks are 2/1/2, while
-cs-Cox has near-random mean Ctd 0.514756 under the strongly nonlinear DGP.
-See [the frozen protocol and complete results](Case2_v4_experiment_plan.md).
-The audited raw Case II v4 runtime artifacts were removed after the final table
-and uncertainty figure were preserved; rerunning the command reconstructs them.
-Case II v3 results must not be mixed with this protocol.
+The historical result table below describes the original formal run. The
+standalone protocol document and paper figure are not included locally. Running
+the command above produces new local artifacts; Case II v3 results must not be
+mixed with this protocol.
 
-### CLI flags (case1 and case2 — other cases use the older inline pattern)
+### Cache CLI flags (case1, case2, and synthetic)
 
-```bash
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case1 -- [flags]
+```text
+python -m competing_risks.experiments.case1.run [flags]
   --retrain MODEL ...   # force retrain (also clears that model's eval cache)
   --reeval  MODEL ...   # force re-eval (re-predicts + re-evaluates; keeps model.pt)
   --list                # show cache state and exit
@@ -185,35 +284,27 @@ Model names are case-insensitive: `deephit dsm cs-cox neural-fg crsoft`.
 Examples:
 ```bash
 # Show what's cached, plan what would happen on a normal run
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case1 -- --list
+python -m competing_risks.experiments.case1.run --list
 
 # Iterate CRSoft hyperparameters: edit _train_crsoft() in case1/run.py, then:
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case1 -- --retrain crsoft
+python -m competing_risks.experiments.case1.run --retrain crsoft
 
 # Re-eval one baseline (e.g. after modifying compute_ibs)
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case1 -- --reeval deephit
-```
-
-### Manual cache management (cases other than case1 / case2)
-
-```bash
-# Retrain only CRSoft on PBC (baselines loaded from cache)
-rm experiments/pbc/outputs/models/crsoft.pt
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case_pbc
+python -m competing_risks.experiments.case1.run --reeval deephit
 ```
 
 ### Two-Tier Caching for Fast Iteration
 
-Each `experiments/<case>/run.py` is built on top of `experiments/runner.py`, which provides a uniform `(train | load) × (eval | load_eval)` runner over all models. There are two cache tiers per (case, model):
+The `case1`, `case2`, and `synthetic` runners use `experiments/runner.py`, which provides a uniform `(train | load) × (eval | load_eval)` runner over all models. There are two cache tiers per (case, model):
 
 | Tier | Path | What it stores | When skipped |
 |---|---|---|---|
 | **Model** | `outputs/models/<key>.pt` | Trained model weights / fit state | Loaded if present; training otherwise |
 | **Eval** | `outputs/eval_cache/<key>.pt` | Predicted CIF tensor + metrics dict | Loaded if present; predict + eval otherwise (skips O(n²) C^td) |
 
-**CLI** (each case's `run.py` accepts):
-```bash
-buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case1 -- [flags]
+**CLI** (for these three runners):
+```text
+python -m competing_risks.experiments.case1.run [flags]
   --retrain MODEL ...   # force retrain (clears both model + eval caches)
   --reeval  MODEL ...   # force re-eval (re-predicts + re-evaluates; keeps model.pt)
   --list                # show cache state and exit
@@ -245,6 +336,11 @@ For a systematic grid sweep, create a temporary `search.py` in the experiment di
 ---
 
 ## Simulation Studies (Case I–III)
+
+The descriptions and tables below are retained from the original README.
+References to frozen audits, protocol documents, checkpoints, and paper figures
+refer to the original project; those artifacts are not included in this local
+checkout. Use the commands above to generate local results.
 
 All three cases use the same competing-risk probability identity, but differ in
 how covariates and time determine the true CIFs. Case III v4 is deliberately
@@ -299,7 +395,7 @@ quadratic and pairwise covariate effects are static, with no explicit
   `b928fa70076903f4bb1a1bb1173c8c7c5a98571cef0b9320c0d16a8cacdcfe1f`.
 - **Final figure**: `our_paper/figures/cif_case2_v4_uncertainty.png`.
 
-The complete protocol is in `Case2_v4_experiment_plan.md`. The earlier
+The original protocol document `Case2_v4_experiment_plan.md` is not yet included locally. The earlier
 `p=5` shared-hidden-layer DGP (`data/case2.py`, `experiments/case2/`) and the
 `K=p=8` Case II v3 study are retained only for historical reproduction; they
 are not the current Case II design and do not contribute results below.
@@ -338,14 +434,12 @@ working log-odds are `mu_k(x,t) = eta_k(x) + log G(t,x)`; the probabilities at
 - **Final figure**: `our_paper/figures/cif_case3_v4_uncertainty.png`, using
   five fixed subjects from plot-cohort seed 250000 and 100 times on `[0,50]`.
 
-The complete frozen protocol is in `Case3_v4_experiment_plan.md`. The original
+The original frozen protocol document `Case3_v4_experiment_plan.md` is not yet included locally. The original
 functional study (`data/case3.py`, `experiments/case3/`) and Case III v2
 interaction study (`data/case3_interaction.py`, `experiments/case3_v2/`) are
 retained as historical experiments only. Neither contributes results to the
-current Case III v4 comparison. After the independent audit, the raw
-development/formal checkpoints and prediction caches were removed; the frozen
-table, hashes, audit record, and final PNG remain, and the commands above
-reconstruct the runtime artifacts.
+current Case III v4 comparison. The original audit and final PNG are not included in this checkout;
+the commands above generate new local runtime artifacts.
 
 ### Simulation Results
 
@@ -454,6 +548,10 @@ formal execution hash
 
 ## Real-World Data
 
+Historical reference only: PBC and Framingham code/data are not included in this
+checkout. Synthetic code is present, but its CSV is still missing. The tables and
+artifact paths in this section describe the original project.
+
 ### Datasets
 
 | Dataset | Events | Features | Train/Test | Censoring |
@@ -487,7 +585,7 @@ CRSoft: single-seed Brier-augmented (λ=2.0, n_times=10) + isotonic post-fix. No
 | Fine-Gray | — / 0.821 | — / 0.877 | — | — | — | — |
 | SurvivalBoost | — / **0.872** | — / **0.936** | — | — | — | — |
 
-CRSoft is **6/6 SOTA** vs the four trained baselines: best on every column (C^td death/transplant/overall, IBS death/transplant/overall) — and achieves it with a single trained model rather than an 8-seed ensemble. Reproducible from `experiments/pbc/outputs/`: `models/crsoft.pt` (single member state_dict + metadata), `eval_cache/crsoft.pt` (isotonic-projected CIF tensor + metrics dict), `results.txt`, `training_loss.png`, `cif_comparison.png`, `event_time_distribution.png`. To re-derive: `buck run @fbcode//mode/opt fbsource//users/ga/gaoming/competing_risks:case_pbc -- --retrain crsoft` (~3 min on A100, ~20 min on CPU).
+CRSoft is **6/6 SOTA** vs the four trained baselines: best on every column (C^td death/transplant/overall, IBS death/transplant/overall) — and achieves it with a single trained model rather than an 8-seed ensemble. Original-project artifacts were stored in `experiments/pbc/outputs/`: `models/crsoft.pt` (single member state_dict + metadata), `eval_cache/crsoft.pt` (isotonic-projected CIF tensor + metrics dict), `results.txt`, `training_loss.png`, `cif_comparison.png`, `event_time_distribution.png`. The PBC runner is not included locally.
 
 #### Framingham Heart Study
 
@@ -504,7 +602,7 @@ CRSoft: single-seed Brier-augmented (λ=2.0) + isotonic post-fix. No ensembles �
 | Fine-Gray | — / 0.773 | — / 0.714 | — | — | — | — |
 | SurvivalBoost | — / 0.765 | — / 0.703 | — | — | — | — |
 
-CRSoft is **4/6 SOTA** on Framingham: best on Ctd_overall, Ctd_CVD, IBS_overall, IBS_CVD. The remaining 2/6 (Ctd_death and IBS_death) are held by cs-Cox by small margins (0.009 and 0.002) — Framingham death follows a near-linear proportional-hazards process, which is cs-Cox's native domain. Reproducible from `experiments/framingham/outputs/`: `models/crsoft.pt` (single-seed state_dict + metadata), `eval_cache/crsoft.pt` (CIF tensor + metrics), `results.txt`, `training_loss.png`, `cif_comparison.png`, `event_time_distribution.png`. To re-derive (~3 min on GPU): `CUDA_VISIBLE_DEVICES=0 KINETO_DISABLE=1 buck run @fbcode//mode/dev-nosan -c fbcode.enable_gpu_sections=true -c fbcode.nvcc_arch=a100 -m ovr_config//third-party/cuda/constraints:12.4 fbsource//users/ga/gaoming/competing_risks:case_framingham -- --retrain crsoft`. Two labeled snapshots are kept: `outputs_pretuning_baseline/` (2/6 SOTA, before any tuning) and `outputs_final_sota_brier2_singleseed/` (4/6 SOTA, the winner).
+CRSoft is **4/6 SOTA** on Framingham: best on Ctd_overall, Ctd_CVD, IBS_overall, IBS_CVD. The remaining 2/6 (Ctd_death and IBS_death) are held by cs-Cox by small margins (0.009 and 0.002) — Framingham death follows a near-linear proportional-hazards process, which is cs-Cox's native domain. Original-project artifacts were stored in `experiments/framingham/outputs/`: `models/crsoft.pt` (single-seed state_dict + metadata), `eval_cache/crsoft.pt` (CIF tensor + metrics), `results.txt`, `training_loss.png`, `cif_comparison.png`, `event_time_distribution.png`. The Framingham runner is not included locally. Two labeled snapshots are kept: `outputs_pretuning_baseline/` (2/6 SOTA, before any tuning) and `outputs_final_sota_brier2_singleseed/` (4/6 SOTA, the winner).
 
 #### Synthetic (DeepHit benchmark)
 
@@ -524,7 +622,7 @@ Cells show "ours / DKAJ-published" where both available. Bold = best across our 
 | Fine-Gray | — / 0.582 | — / 0.592 | — / 0.587 | — | — | — |
 | cs-Cox | 0.574 / 0.581 | 0.592 / 0.590 | 0.583 / 0.586 | 0.193 | 0.188 | 0.190 |
 
-CRSoft is **2/6 SOTA on Synthetic** (single-seed: C^td_overall 0.7471 > DeepHit 0.7467; C^td_cause_2 0.7429 > DeepHit 0.7421; C^td_cause_1 ties DeepHit at 0.7513 within rounding). Compared to the previous configuration (M=2, λ=0.3) which scored 0/6 SOTA at C^td_overall=0.720 / IBS=0.178, the new recipe lifts every C^td metric by ~0.027 at the cost of ~0.027 IBS. The trade is structural (Appendix [Ablation Study (Synthetic)](#ablation-study-synthetic--pushing-crsoft-to-sota-on-the-largest-benchmark)). Reproducible from `experiments/synthetic/outputs/`: `models/crsoft.pt` (single-seed state_dict), `eval_cache/crsoft.pt` (post-isotonic CIF tensor + metrics dict), `results.txt`, `training_loss.png`, `cif_comparison.png`. To re-derive (~3 min on A100): `CUDA_VISIBLE_DEVICES=0 KINETO_DISABLE=1 buck run @fbcode//mode/dev-nosan -c fbcode.enable_gpu_sections=true -c fbcode.nvcc_arch=a100 -m ovr_config//third-party/cuda/constraints:12.4 fbsource//users/ga/gaoming/competing_risks:synthetic -- --retrain crsoft`. Sweep logs in `experiments/synthetic/outputs/sweep_logs/` document the Phase B–G exploration (~100 min on 2 A100s in parallel via `case_synthetic_brier --shard i/n`).
+CRSoft is **2/6 SOTA on Synthetic** (single-seed: C^td_overall 0.7471 > DeepHit 0.7467; C^td_cause_2 0.7429 > DeepHit 0.7421; C^td_cause_1 ties DeepHit at 0.7513 within rounding). Compared to the previous configuration (M=2, λ=0.3) which scored 0/6 SOTA at C^td_overall=0.720 / IBS=0.178, the new recipe lifts every C^td metric by ~0.027 at the cost of ~0.027 IBS. The trade is structural (Appendix [Ablation Study (Synthetic)](#ablation-study-synthetic--pushing-crsoft-to-sota-on-the-largest-benchmark)). Original-project artifacts were stored in `experiments/synthetic/outputs/`: `models/crsoft.pt` (single-seed state_dict), `eval_cache/crsoft.pt` (post-isotonic CIF tensor + metrics dict), `results.txt`, `training_loss.png`, `cif_comparison.png`. After adding the CSV, run `python -m competing_risks.experiments.synthetic.run --retrain crsoft`. Sweep logs in `experiments/synthetic/outputs/sweep_logs/` document the Phase B–G exploration (~100 min on 2 A100s in parallel via `case_synthetic_brier --shard i/n`).
 
 
 
@@ -844,7 +942,7 @@ backward reproduction and must not be compared as current Case II v4 results.
 We tuned CRSoft on the historical functional study (5,000 train, K=2, p=3
 functional covariates, G=50). Baseline arch was h=32, L=2, lr=5e-3,
 wd=1e-4, n_aug=2, ep=1500. The sweep is implemented in
-`experiments/case3/sweep.py` (BUCK target `case3_sweep`); it generates the
+`experiments/case3/sweep.py` (historical sweep script); it generates the
 dataset once, then runs each `Config` with isotonic post-fix.
 
 ### Time Augmentation × Weight Decay × Architecture (the dominant axes)
@@ -945,7 +1043,7 @@ cosine annealing, no early stopping, full training data
 + post-hoc isotonic projection on the eval-time grid
 ```
 
-Yields **6/6 SOTA**: C^td (overall 0.879, death 0.852, transplant 0.906) — all best; IBS (overall 0.069, death 0.101, transplant 0.036) — all best. Reproducibility artifacts in `experiments/pbc/outputs/`:
+Yields **6/6 SOTA**: C^td (overall 0.879, death 0.852, transplant 0.906) — all best; IBS (overall 0.069, death 0.101, transplant 0.036) — all best. Original-project reproducibility artifacts in `experiments/pbc/outputs/`:
 - `models/crsoft.pt` — single .pt holding the trained `state_dict` + metadata (`brier_lambda`, `brier_n_times`, etc.) so `CRSoftEnsemble.load_from_checkpoint` reconstructs the exact model. Wrapping a single member in `CRSoftEnsemble` (with `alpha=[1, 1]`) keeps the load/save plumbing identical to other datasets.
 - `eval_cache/crsoft.pt` — the post-isotonic predicted CIF tensor `(n_test, K, n_eval_times)` and the metrics dict.
 - `results.txt`, `training_loss.png`, `cif_comparison.png`, `event_time_distribution.png` — paper figures and tables.
@@ -957,7 +1055,7 @@ Exploration scripts kept in-tree as additional artifacts:
 - `experiments/pbc/brier_sweep.py` — original Brier-loss λ sweep + Brier ensemble + shrinkage; the precursor to the single-seed sweep.
 - `experiments/pbc/single_seed_sweep.py` — the 4-phase sweep that found the 6/6 single-seed config (seed scan, cause-weighted Brier, brier_n_times scan, shrinkage post-processing). Supports `--shard i/n` for parallel GPU runs.
 
-Each has a corresponding `python_binary` in BUCK (`case_pbc_sweep`, `case_pbc_ensemble`, `case_pbc_sharpen`, `case_pbc_brier`, `case_pbc_single_seed`).
+These PBC exploration scripts are not included in this local checkout.
 
 ---
 
@@ -997,14 +1095,14 @@ no class_weights
 single seed (n_seeds=1)
 cosine annealing, no early stopping, full training data
 + post-hoc isotonic projection on the eval-time grid
-device: cuda (use the GPU buck recipe documented above)
+device: cuda (original experiment hardware)
 ```
 
-Yields **4/6 SOTA**: Ctd_overall 0.7583 (best), Ctd_CVD 0.7812 (best), IBS_overall 0.0702 (best), IBS_CVD 0.0862 (best); Ctd_death 0.7355 (cs-Cox 0.7445 wins), IBS_death 0.0543 (cs-Cox 0.0520 wins). Reproducibility artifacts in `experiments/framingham/outputs/`. Two labeled snapshots side-by-side for the paper:
+Yields **4/6 SOTA**: Ctd_overall 0.7583 (best), Ctd_CVD 0.7812 (best), IBS_overall 0.0702 (best), IBS_CVD 0.0862 (best); Ctd_death 0.7355 (cs-Cox 0.7445 wins), IBS_death 0.0543 (cs-Cox 0.0520 wins). Original-project reproducibility artifacts in `experiments/framingham/outputs/`. Two labeled snapshots side-by-side for the paper:
 - `outputs_pretuning_baseline/` — pre-tuning (2/6 SOTA, Ctd_o=0.7584, IBS_o=0.0823)
 - `outputs_final_sota_brier2_singleseed/` — single-seed Brier (**4/6 SOTA**, the winner) + extended single-seed HP sweep logs (`sweep_tune_aug_brier.log`, `sweep_tune_optim.log`)
 
-Exploration scripts kept in-tree: `experiments/framingham/tune_aug_brier_sweep.py` (single-seed time-aug × Brier-richness HP sweep), `tune_optim_sweep.py` (single-seed optim/batch/epochs/width HP sweep). BUCK targets: `case_framingham_tune_aug_brier`, `case_framingham_tune_optim`. Both accept `--device cuda:0` / `cuda:1` for parallel runs across both GPUs without setting `CUDA_VISIBLE_DEVICES`.
+Exploration scripts in the original project: `experiments/framingham/tune_aug_brier_sweep.py` (single-seed time-aug × Brier-richness HP sweep), `tune_optim_sweep.py` (single-seed optim/batch/epochs/width HP sweep). These Framingham exploration scripts are not included locally. Both accept `--device cuda:0` / `cuda:1` for parallel runs across both GPUs without setting `CUDA_VISIBLE_DEVICES`.
 
 ### Extended single-seed HP sweep — confirms 4/6 is the ceiling for pure CRSoft
 
@@ -1028,6 +1126,9 @@ After the 4/6 baseline was reached, ran an exhaustive 41-config single-seed hype
 ---
 
 ## Reports
+
+These links point to the original reports and may require access to the original
+internal environment. They are not required to run the local Python modules.
 
 - [Case I — Linear](https://pxl.cl/9hhmx)
 - [Case II & III — Smooth Additive & Functional Covariates](https://www.internalfb.com/intern/px/p/9lmG5/)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import later.unittest
+import unittest
 import torch
 
 from ..evaluation.simulation import compute_dist
 
 
-class SimulationMetricsTest(later.unittest.TestCase):
+class SimulationMetricsTest(unittest.TestCase):
     def test_reports_negative_implied_survival(self) -> None:
         cif = torch.tensor(
             [

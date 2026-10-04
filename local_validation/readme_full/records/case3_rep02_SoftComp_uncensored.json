@@ -1,0 +1,24 @@
+{
+  "name": "case3_rep02_SoftComp_uncensored",
+  "pid": 64138,
+  "started": 1791073826.311445,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.uncensored import main; main()",
+    "--case",
+    "3",
+    "--method",
+    "SoftComp",
+    "--replicate",
+    "2",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/uncensored",
+    "--uncensored"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/uncensored/case3_rep02_SoftComp.json",
+  "returncode": 0,
+  "seconds": 32.98037600517273
+}

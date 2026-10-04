@@ -1,0 +1,23 @@
+{
+  "name": "case3_rep04_SoftComp-noaug_censored",
+  "pid": 65895,
+  "started": 1791074333.097121,
+  "command": [
+    "/Users/kevin/Projects/competing_risks/.venv/bin/python",
+    "-c",
+    "from competing_risks.experiments.joint_softcomp.uncensored import main; main()",
+    "--case",
+    "3",
+    "--method",
+    "SoftComp-noaug",
+    "--replicate",
+    "4",
+    "--threads",
+    "1",
+    "--out-dir",
+    "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censored"
+  ],
+  "output": "/Users/kevin/Projects/competing_risks/local_validation/readme_full/censored/case3_rep04_SoftComp-noaug.json",
+  "returncode": 0,
+  "seconds": 23.735934019088745
+}

@@ -5,7 +5,7 @@ import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
-import later.unittest
+import unittest
 import torch
 
 from ..data import case2_v3
@@ -96,7 +96,7 @@ def _write_method_artifacts(
             json.dump(complete, file)
 
 
-class Case2V3FormalTest(later.unittest.TestCase):
+class Case2V3FormalTest(unittest.TestCase):
     def test_formal_schedule_runs_all_methods_for_ten_replicates(self) -> None:
         config = _config("formal")
 

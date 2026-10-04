@@ -1,0 +1,135 @@
+test_analytic_inverse_handles_time_zero_atom_and_positive_times (competing_risks.tests.test_case1_v3.Case1V3Test.test_analytic_inverse_handles_time_zero_atom_and_positive_times) ... ok
+test_cause_probabilities_are_sign_symmetric_with_cause_two_centered (competing_risks.tests.test_case1_v3.Case1V3Test.test_cause_probabilities_are_sign_symmetric_with_cause_two_centered) ... ok
+test_cause_probabilities_are_time_invariant (competing_risks.tests.test_case1_v3.Case1V3Test.test_cause_probabilities_are_time_invariant) ... ok
+test_cif_is_finite_monotone_and_probability_coherent (competing_risks.tests.test_case1_v3.Case1V3Test.test_cif_is_finite_monotone_and_probability_coherent) ... ok
+test_default_parameters_match_frozen_affine_candidate (competing_risks.tests.test_case1_v3.Case1V3Test.test_default_parameters_match_frozen_affine_candidate) ... ok
+test_fixed_seed_data_are_reproducible_and_audit_atom_mass (competing_risks.tests.test_case1_v3.Case1V3Test.test_fixed_seed_data_are_reproducible_and_audit_atom_mass) ... ok
+test_invalid_configuration_is_rejected (competing_risks.tests.test_case1_v3.Case1V3Test.test_invalid_configuration_is_rejected) ... ok
+test_static_scores_and_mu_are_strictly_affine (competing_risks.tests.test_case1_v3.Case1V3Test.test_static_scores_and_mu_are_strictly_affine) ... ok
+test_time_zero_is_a_coherent_positive_atom (competing_risks.tests.test_case1_v3.Case1V3Test.test_time_zero_is_a_coherent_positive_atom) ... ok
+test_case1_v3_formal (unittest.loader._FailedTest.test_case1_v3_formal) ... ERROR
+test_case1_v3_softcomp (unittest.loader._FailedTest.test_case1_v3_softcomp) ... ERROR
+test_cif_is_monotone_and_probability_coherent (competing_risks.tests.test_case2_v3.Case2V3Test.test_cif_is_monotone_and_probability_coherent) ... ok
+test_nonlinear_effects_dominate_the_linear_effect (competing_risks.tests.test_case2_v3.Case2V3Test.test_nonlinear_effects_dominate_the_linear_effect) ... ok
+test_static_scores_are_not_well_approximated_by_linear_effects (competing_risks.tests.test_case2_v3.Case2V3Test.test_static_scores_are_not_well_approximated_by_linear_effects) ... ok
+test_configuration_hash_ignores_execution_phase_and_seed_range (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_configuration_hash_ignores_execution_phase_and_seed_range) ... ok
+test_development_gate_fails_when_softcomp_is_third (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_development_gate_fails_when_softcomp_is_third) ... ok
+test_development_gate_requires_cscox_threshold_and_softcomp_top_two (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_development_gate_requires_cscox_threshold_and_softcomp_top_two) ... ok
+test_development_schedule_runs_all_methods_in_every_replicate (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_development_schedule_runs_all_methods_in_every_replicate) ... ok
+test_fine_gray_backfill_defers_global_update_until_all_replicates_complete (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_fine_gray_backfill_defers_global_update_until_all_replicates_complete) ... ok
+test_fine_gray_backfill_merges_without_changing_existing_results (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_fine_gray_backfill_merges_without_changing_existing_results) ... ok
+test_fine_gray_backfill_rejects_hash_mismatch_before_mutation (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_fine_gray_backfill_rejects_hash_mismatch_before_mutation) ... ok
+test_fine_gray_backfill_rejects_incomplete_legacy_replicate (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_fine_gray_backfill_rejects_incomplete_legacy_replicate) ... ok
+test_fine_gray_completion_requires_its_method_hash (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_fine_gray_completion_requires_its_method_hash) ... ok
+test_formal_gate_rejects_a_different_configuration (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_formal_gate_rejects_a_different_configuration) ... ok
+test_formal_replicate_completion_uses_its_expected_methods (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_formal_replicate_completion_uses_its_expected_methods) ... ok
+test_formal_schedule_metadata_records_the_amendment (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_formal_schedule_metadata_records_the_amendment) ... ok
+test_formal_schedule_runs_all_methods_for_ten_replicates (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_formal_schedule_runs_all_methods_for_ten_replicates) ... ok
+test_import_development_results_merges_verified_single_runs (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_import_development_results_merges_verified_single_runs) ... ok
+test_negative_survival_summary_uses_all_replicates (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_negative_survival_summary_uses_all_replicates) ... ok
+test_plot_cohort_is_reproducible_and_probability_coherent (competing_risks.tests.test_case2_v3_formal.Case2V3FormalTest.test_plot_cohort_is_reproducible_and_probability_coherent) ... ok
+test_cif_is_monotone_and_probability_coherent (competing_risks.tests.test_case2_v4.Case2V4Test.test_cif_is_monotone_and_probability_coherent) ... ok
+test_default_parameters_and_generated_data_have_expected_shapes (competing_risks.tests.test_case2_v4.Case2V4Test.test_default_parameters_and_generated_data_have_expected_shapes) ... ok
+test_generated_data_has_no_t_max_pileup_and_all_causes_are_observed (competing_risks.tests.test_case2_v4.Case2V4Test.test_generated_data_has_no_t_max_pileup_and_all_causes_are_observed) ... ok
+test_parameters_encode_the_requested_strong_nonlinearity (competing_risks.tests.test_case2_v4.Case2V4Test.test_parameters_encode_the_requested_strong_nonlinearity) ... ok
+test_static_scores_have_low_held_out_linear_r_squared (competing_risks.tests.test_case2_v4.Case2V4Test.test_static_scores_have_low_held_out_linear_r_squared) ... ok
+test_development_gate_accepts_only_the_frozen_success_criteria (competing_risks.tests.test_case2_v4_formal.Case2V4FormalTest.test_development_gate_accepts_only_the_frozen_success_criteria) ... ok
+test_formal_gate_requires_complete_matching_success (competing_risks.tests.test_case2_v4_formal.Case2V4FormalTest.test_formal_gate_requires_complete_matching_success) ... ok
+test_frozen_schedules_use_all_six_models_and_share_a_hash (competing_risks.tests.test_case2_v4_formal.Case2V4FormalTest.test_frozen_schedules_use_all_six_models_and_share_a_hash) ... ok
+test_plot_cohort_is_deterministic_and_probability_coherent (competing_risks.tests.test_case2_v4_formal.Case2V4FormalTest.test_plot_cohort_is_deterministic_and_probability_coherent) ... ok
+test_protocol_hash_changes_when_softcomp_setting_changes (competing_risks.tests.test_case2_v4_formal.Case2V4FormalTest.test_protocol_hash_changes_when_softcomp_setting_changes) ... ok
+test_softcomp_model_is_reduced_for_three_causes (competing_risks.tests.test_case2_v4_formal.Case2V4FormalTest.test_softcomp_model_is_reduced_for_three_causes) ... ok
+test_cif_is_monotone_and_probability_coherent (competing_risks.tests.test_case3_interaction.Case3InteractionTest.test_cif_is_monotone_and_probability_coherent) ... ok
+test_invalid_interaction_range_is_rejected (competing_risks.tests.test_case3_interaction.Case3InteractionTest.test_invalid_interaction_range_is_rejected) ... ok
+test_time_slope_is_positive_bounded_and_subject_specific (competing_risks.tests.test_case3_interaction.Case3InteractionTest.test_time_slope_is_positive_bounded_and_subject_specific) ... ok
+test_cif_is_finite_monotone_and_probability_coherent (competing_risks.tests.test_case3_v4.Case3V4Test.test_cif_is_finite_monotone_and_probability_coherent) ... ok
+test_cif_matches_the_exact_folded_time_rate_formula (competing_risks.tests.test_case3_v4.Case3V4Test.test_cif_matches_the_exact_folded_time_rate_formula) ... ok
+test_default_parameters_and_generated_data_have_expected_shapes (competing_risks.tests.test_case3_v4.Case3V4Test.test_default_parameters_and_generated_data_have_expected_shapes) ... ok
+test_fixed_seed_data_have_no_t_max_pileup_and_balanced_events (competing_risks.tests.test_case3_v4.Case3V4Test.test_fixed_seed_data_have_no_t_max_pileup_and_balanced_events) ... ok
+test_static_scores_follow_the_exact_linear_formula (competing_risks.tests.test_case3_v4.Case3V4Test.test_static_scores_follow_the_exact_linear_formula) ... ok
+test_time_interaction_has_strong_early_to_late_contrast (competing_risks.tests.test_case3_v4.Case3V4Test.test_time_interaction_has_strong_early_to_late_contrast) ... ok
+test_time_rate_has_low_linear_r_squared_and_wide_spread (competing_risks.tests.test_case3_v4.Case3V4Test.test_time_rate_has_low_linear_r_squared_and_wide_spread) ... ok
+test_time_rate_matches_folded_single_index_and_is_even (competing_risks.tests.test_case3_v4.Case3V4Test.test_time_rate_matches_folded_single_index_and_is_even) ... ok
+test_development_gate_accepts_only_the_frozen_success_criteria (competing_risks.tests.test_case3_v4_formal.Case3V4FormalTest.test_development_gate_accepts_only_the_frozen_success_criteria) ... ok
+test_formal_gate_requires_complete_matching_success (competing_risks.tests.test_case3_v4_formal.Case3V4FormalTest.test_formal_gate_requires_complete_matching_success) ... ok
+test_frozen_schedules_use_all_six_models_and_share_a_hash (competing_risks.tests.test_case3_v4_formal.Case3V4FormalTest.test_frozen_schedules_use_all_six_models_and_share_a_hash) ... ok
+test_plot_cohort_is_deterministic_and_probability_coherent (competing_risks.tests.test_case3_v4_formal.Case3V4FormalTest.test_plot_cohort_is_deterministic_and_probability_coherent) ... ok
+test_protocol_hash_changes_when_softcomp_setting_changes (competing_risks.tests.test_case3_v4_formal.Case3V4FormalTest.test_protocol_hash_changes_when_softcomp_setting_changes) ... ok
+test_softcomp_model_is_reduced_for_three_causes (competing_risks.tests.test_case3_v4_formal.Case3V4FormalTest.test_softcomp_model_is_reduced_for_three_causes) ... ok
+test_cause_router_matches_folded_angular_softmax_formula (competing_risks.tests.test_case3_v5.Case3V5Test.test_cause_router_matches_folded_angular_softmax_formula) ... ok
+test_cif_is_finite_monotone_and_probability_coherent (competing_risks.tests.test_case3_v5.Case3V5Test.test_cif_is_finite_monotone_and_probability_coherent) ... ok
+test_cumulative_hazard_matches_formula_and_has_positive_derivative (competing_risks.tests.test_case3_v5.Case3V5Test.test_cumulative_hazard_matches_formula_and_has_positive_derivative) ... ok
+test_default_parameters_and_generated_data_have_expected_shapes (competing_risks.tests.test_case3_v5.Case3V5Test.test_default_parameters_and_generated_data_have_expected_shapes) ... ok
+test_default_parameters_have_positive_time_coefficients (competing_risks.tests.test_case3_v5.Case3V5Test.test_default_parameters_have_positive_time_coefficients) ... ok
+test_fixed_seed_data_have_no_t_max_pileup_and_balanced_events (competing_risks.tests.test_case3_v5.Case3V5Test.test_fixed_seed_data_have_no_t_max_pileup_and_balanced_events) ... ok
+test_folded_hazard_and_cumulative_effects_cross_at_analytic_times (competing_risks.tests.test_case3_v5.Case3V5Test.test_folded_hazard_and_cumulative_effects_cross_at_analytic_times) ... ok
+test_folded_index_is_even_bounded_and_linearly_orthogonal (competing_risks.tests.test_case3_v5.Case3V5Test.test_folded_index_is_even_bounded_and_linearly_orthogonal) ... ok
+test_persistent_folded_acceleration_survives_at_reference_time (competing_risks.tests.test_case3_v5.Case3V5Test.test_persistent_folded_acceleration_survives_at_reference_time) ... ok
+test_router_is_linearly_orthogonal_and_has_balanced_probability_spread (competing_risks.tests.test_case3_v5.Case3V5Test.test_router_is_linearly_orthogonal_and_has_balanced_probability_spread) ... ok
+test_development_gate_accepts_only_the_frozen_success_criteria (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_development_gate_accepts_only_the_frozen_success_criteria) ... ok
+test_fine_gray_convergence_is_read_from_checkpoint (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_fine_gray_convergence_is_read_from_checkpoint) ... ok
+test_formal_gate_requires_complete_matching_success (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_formal_gate_requires_complete_matching_success) ... ok
+test_frozen_protocol_records_the_final_candidate (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_frozen_protocol_records_the_final_candidate) ... ok
+test_frozen_schedules_use_all_six_models_and_share_a_hash (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_frozen_schedules_use_all_six_models_and_share_a_hash) ... ok
+test_plot_cohort_is_deterministic_and_probability_coherent (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_plot_cohort_is_deterministic_and_probability_coherent) ... ok
+test_protocol_hash_changes_when_softcomp_setting_changes (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_protocol_hash_changes_when_softcomp_setting_changes) ... ok
+test_softcomp_model_is_reduced_for_three_causes (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_softcomp_model_is_reduced_for_three_causes) ... ok
+test_truth_diagnostics_verify_legality_and_crossing (competing_risks.tests.test_case3_v5_formal.Case3V5FormalTest.test_truth_diagnostics_verify_legality_and_crossing) ... ok
+test_predictions_are_probability_coherent (competing_risks.tests.test_cs_cox.CsCoxTest.test_predictions_are_probability_coherent) ... ok
+test_fit_returns_finite_epoch_history (competing_risks.tests.test_dsm.DSMTest.test_fit_returns_finite_epoch_history) ... ok
+test_forward_all_matches_individual_cause_heads (competing_risks.tests.test_dsm.DSMTest.test_forward_all_matches_individual_cause_heads) ... ok
+test_predict_cif_survival_matches_mixture_definition (competing_risks.tests.test_dsm.DSMTest.test_predict_cif_survival_matches_mixture_definition) ... ok
+test_censoring_ties_follow_cmprsk_risk_set_convention (competing_risks.tests.test_fine_gray.FineGrayTest.test_censoring_ties_follow_cmprsk_risk_set_convention) ... ok
+test_checkpoint_round_trip_preserves_predictions (competing_risks.tests.test_fine_gray.FineGrayTest.test_checkpoint_round_trip_preserves_predictions) ... ok
+test_coefficients_match_comprisk_reference_with_cross_type_ties (competing_risks.tests.test_fine_gray.FineGrayTest.test_coefficients_match_comprisk_reference_with_cross_type_ties) ... ok
+test_formal_replicate_zero_converges_for_every_cause (competing_risks.tests.test_fine_gray.FineGrayTest.test_formal_replicate_zero_converges_for_every_cause) ... ok
+test_invalid_hyperparameters_are_rejected (competing_risks.tests.test_fine_gray.FineGrayTest.test_invalid_hyperparameters_are_rejected) ... ok
+test_missing_cause_is_rejected (competing_risks.tests.test_fine_gray.FineGrayTest.test_missing_cause_is_rejected) ... ok
+test_nonconverged_fit_is_rejected (competing_risks.tests.test_fine_gray.FineGrayTest.test_nonconverged_fit_is_rejected) ... ok
+test_prediction_matches_hand_calculated_weighted_risk_sets (competing_risks.tests.test_fine_gray.FineGrayTest.test_prediction_matches_hand_calculated_weighted_risk_sets) ... ok
+test_survival_is_unclamped_implied_survival (competing_risks.tests.test_fine_gray.FineGrayTest.test_survival_is_unclamped_implied_survival) ... ok
+test_aalen_johansen_recovers_true_cif_at_every_censoring_level (competing_risks.tests.test_joint_softcomp.JointSoftCompTest.test_aalen_johansen_recovers_true_cif_at_every_censoring_level) ... ok
+test_fit_produces_finite_losses (competing_risks.tests.test_joint_softcomp.JointSoftCompTest.test_fit_produces_finite_losses) ... ok
+test_labels_switch_at_observed_time (competing_risks.tests.test_joint_softcomp.JointSoftCompTest.test_labels_switch_at_observed_time) ... ok
+test_predictions_are_monotone_and_coherent (competing_risks.tests.test_joint_softcomp.JointSoftCompTest.test_predictions_are_monotone_and_coherent) ... ok
+test_training_times_are_drawn_from_event_times (competing_risks.tests.test_joint_softcomp.JointSoftCompTest.test_training_times_are_drawn_from_event_times) ... ok
+test_simplex_scaling_preserves_monotonicity (competing_risks.tests.test_postprocess.PostprocessTest.test_simplex_scaling_preserves_monotonicity) ... ok
+test_grid_prediction_returns_mean_native_survival (competing_risks.tests.test_runner.CRSoftEnsemblePredictionTest.test_grid_prediction_returns_mean_native_survival) ... ok
+test_can_audit_legacy_cached_cif_with_native_survival (competing_risks.tests.test_runner.ProbabilityDiagnosticsTest.test_can_audit_legacy_cached_cif_with_native_survival) ... ok
+test_computes_dist_and_tolerance_aware_aco_from_cached_cif (competing_risks.tests.test_runner.ProbabilityDiagnosticsTest.test_computes_dist_and_tolerance_aware_aco_from_cached_cif) ... ok
+test_rejects_checkpoint_and_cached_cif_mismatch_by_default (competing_risks.tests.test_runner.ProbabilityDiagnosticsTest.test_rejects_checkpoint_and_cached_cif_mismatch_by_default) ... ok
+test_reports_negative_implied_survival (competing_risks.tests.test_simulation_metrics.SimulationMetricsTest.test_reports_negative_implied_survival) ... ok
+test_separates_roundoff_from_substantive_negative_survival (competing_risks.tests.test_simulation_metrics.SimulationMetricsTest.test_separates_roundoff_from_substantive_negative_survival) ... ok
+test_ctd_counts_concordance_and_ties (competing_risks.tests.test_survival_metrics.SurvivalMetricsTest.test_ctd_counts_concordance_and_ties) ... ok
+test_ibs_matches_hand_calculation_without_censoring (competing_risks.tests.test_survival_metrics.SurvivalMetricsTest.test_ibs_matches_hand_calculation_without_censoring) ... ok
+
+======================================================================
+ERROR: test_case1_v3_formal (unittest.loader._FailedTest.test_case1_v3_formal)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_case1_v3_formal
+Traceback (most recent call last):
+  File "/Users/kevin/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kevin/Projects/competing_risks/tests/test_case1_v3_formal.py", line 11, in <module>
+    from ..experiments.case1_v3.formal import (
+ModuleNotFoundError: No module named 'competing_risks.experiments.case1_v3'
+
+
+======================================================================
+ERROR: test_case1_v3_softcomp (unittest.loader._FailedTest.test_case1_v3_softcomp)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_case1_v3_softcomp
+Traceback (most recent call last):
+  File "/Users/kevin/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kevin/Projects/competing_risks/tests/test_case1_v3_softcomp.py", line 8, in <module>
+    from ..experiments.case1_v3.run import AffineExactSoftComp, K, P, SoftCompConfig
+ModuleNotFoundError: No module named 'competing_risks.experiments.case1_v3'
+
+
+----------------------------------------------------------------------
+Ran 104 tests in 2.128s
+
+FAILED (errors=2)

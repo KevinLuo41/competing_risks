@@ -1,0 +1,40 @@
+[
+  {
+    "case": 2,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_times": 100,
+    "time_min": 1.904963493347168,
+    "time_max": 20.405651092529297,
+    "test_event_90pct": 20.406099319458008,
+    "test_event_975pct": 21.61690330505371,
+    "train_censor_fraction": 0.48539999127388,
+    "test_censor_fraction": 0.46000000834465027
+  },
+  {
+    "case": 3,
+    "paired_equal": {
+      "X_train_full": true,
+      "T_train_true": true,
+      "X_test": true,
+      "eval_times": true
+    },
+    "n_fit": 4500,
+    "n_val": 500,
+    "n_test": 1000,
+    "n_times": 104,
+    "time_min": 0.029594171792268753,
+    "time_max": 18.0,
+    "test_event_90pct": 12.700207710266113,
+    "test_event_975pct": 17.96347427368164,
+    "train_censor_fraction": 0.4814000129699707,
+    "test_censor_fraction": 0.4830000102519989
+  }
+]

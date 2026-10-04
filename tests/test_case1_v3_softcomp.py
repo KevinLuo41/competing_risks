@@ -2,13 +2,13 @@
 
 from dataclasses import asdict
 
-import later.unittest
+import unittest
 import torch
 
 from ..experiments.case1_v3.run import AffineExactSoftComp, K, P, SoftCompConfig
 
 
-class Case1V3SoftCompTest(later.unittest.TestCase):
+class Case1V3SoftCompTest(unittest.TestCase):
     def setUp(self) -> None:
         torch.set_num_threads(1)
 

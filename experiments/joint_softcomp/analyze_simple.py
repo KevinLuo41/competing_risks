@@ -28,12 +28,16 @@ def main() -> None:
     out_dir = sys.argv[1]
     runs = collections.defaultdict(list)
     reference = {}
-    for path in glob.glob(f"{out_dir}/simple_b*.json"):
+    for path in sorted(glob.glob(f"{out_dir}/simple_b*.json")):
         with open(path) as f:
             d = json.load(f)
         beta = round(d["beta"], 4)
         if d["method"] == "reference":
-            reference[beta] = d
+            if beta not in reference:
+                reference[beta] = d
+            else:
+                for method in ("cox", "null"):
+                    reference[beta][method]["runs"].extend(d[method]["runs"])
             continue
         runs[(beta, d["method"], d["m"])].extend(d["runs"])
     for beta in sorted({key[0] for key in runs} | set(reference)):
@@ -65,7 +69,7 @@ def main() -> None:
             if (beta, "joint", m) in runs:
                 rows.append(("JointSoftComp", str(m), runs[(beta, "joint", m)]))
         for name, m, rs in rows:
-
+            cells = " | ".join(fmt([r[k] for r in rs], digits) for k, digits in METRICS)
             print(f"| {name} | {m} | {len(rs)} | {cells} |")
 
 

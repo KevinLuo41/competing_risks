@@ -24,7 +24,7 @@ import torch
 from torch import Tensor
 
 from ...crsoft_model.joint_softcomp import JointSoftComp
-from ...evaluation import compute_mse_accuracy, evaluate_cif_metrics
+from ...evaluation import build_evaluation_time_grid, compute_mse_accuracy, evaluate_cif_metrics
 from ...evaluation.simulation import compute_dist
 from ..case2_v4 import run as case2
 from ..case3_v5 import run as case3
@@ -57,6 +57,16 @@ def prepare(case: int, replicate: int, uncensored: bool) -> object:
         "test_seed": test_base + replicate,
     }
     data = module.prepare_data(**seeds)
+    if case == 2:
+        # The supplementary README uses 97.5%, while the original Case II
+        # formal protocol uses 90%. Keep that formal protocol unchanged.
+        # Only Case III defines additional fixed evaluation times in source.
+        data = dataclasses.replace(
+            data,
+            eval_times=build_evaluation_time_grid(
+                data.Y_test, data.Delta_test, n_grid=100, percentile_cap=97.5
+            ),
+        )
     if not uncensored:
         return data
     complete = module.prepare_data(**seeds, censor_rate=0.0)
