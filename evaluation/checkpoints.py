@@ -1,37 +1,14 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import torch
 
 
 def _experiments_dir() -> Path:
-    """Locate the source-controlled `experiments/` dir.
-
-    `Path(__file__)` works in dev mode (link-tree of symlinks) but breaks in
-    opt mode where the .par is a non-directory archive. Fall back to a known
-    fbsource path that's stable for both modes.
-    """
-    src = Path(__file__).resolve().parent.parent / "experiments"
-    if "buck-out" in str(src):
-        # Running from a packaged .par — use the source-controlled location.
-        marker = Path("users/ga/gaoming/competing_risks/experiments")
-        for root in (
-            Path(os.environ.get("FBSOURCE", ""))
-            if os.environ.get("FBSOURCE")
-            else None,
-            Path.home() / "fbsource",
-            Path(f"/data/users/{os.environ.get('USER', 'gaoming')}/fbsource"),
-        ):
-            if root is None:
-                continue
-            cand = root / marker
-            if cand.exists():
-                return cand
-        raise RuntimeError(f"can't locate experiments/ dir; tried fallbacks for {src}")
-    return src
+    """Locate the local project's `experiments/` directory."""
+    return Path(__file__).resolve().parent.parent / "experiments"
 
 
 def get_output_dir(experiment: str) -> Path:
