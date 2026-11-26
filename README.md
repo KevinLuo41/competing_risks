@@ -458,3 +458,8 @@ The script runs four censoring levels, both methods, and the Case III / constant
 All raw outputs, summaries, the environment lock, and audit records are stored in
 [`local_validation/readme_full/`](local_validation/readme_full/).
 Original server results and ablation records are retained in the [historical archive](docs/historical_results.md).
+
+## Authors
+
+This repository accompanies the SoftComp paper on softmax regression for competing risks. Paper co-authors include Kaiwen Luo and Ming Gao (@gaoming96).
+
